@@ -1,11 +1,13 @@
 #include "packet.h"
+#include "phit.h"
 #include "node.h"
 class link{
     private:
         int latency;
         node* src_node;
         node* dst_node;
-        packet* packet_list;
+        phit* phit_list;
+        bool back_pressure;//ture: turn on the backpressure to sender. false: no backpressure to sender
     public:
         //default constructor
         link();
@@ -32,10 +34,16 @@ void link::set_dst(node* dst){
 
 
 void link::link_alloc(){
-    packet_list=new packet[latency];
+    phit_list=new phit[latency];
     for(int i=0; i<latency; ++i){
-        packet[i]
+        phit_list[i].valid=false;
+        phit_list[i].cur_link=this;
     }
+}
+
+void link::advance_one_clock(){
+    for(int i=0;i<la
+
 }
 
 
