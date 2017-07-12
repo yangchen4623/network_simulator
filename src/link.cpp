@@ -1,65 +1,41 @@
-#include "packet.h"
-#include "phit.h"
-#include "node.h"
-class link{
-    private:
-        int latency;
-        int direction;//0 is xpos, 1 is xneg, 2 is ypos, 3 is yneg, 4 is zpos, 5 is zneg
-        node* src_node;
-        node* dst_node;
-        phit* phit_list;
-        bool back_pressure;//ture: turn on the backpressure to sender. false: no backpressure to sender 
-                           //default: no backpressure
-    public:
-        //default constructor
-        link();
-
-        void link_alloc();
-        void set_src();
-        void set_dst();
-        void set_dir();
-        void advance_one_cycle()
-
-};
+#include "link.h"
 
 link::link(){
-    latency=28;
-    back_pressure=false;
+    latency = LINKDELAY;
 }
 
-void link::set_src(node* src){
-    src_node=src;
 
-}
 
-void link::set_dst(node* dst){
-    dst_node=dst;
-}
-
-void link::set_dir(int dir){
-    direction=dir;
+link::link(int Latency, int Dir, node* Src_node, node* Dst_node){
+    latency = Latency;
+    dir = Dir;
+    src_node = Src_node;
+    dst_node = Dst_node;
+    in = &(Src_node -> out);
+    //allocate space for all the flits in alloc
 }
 
 void link::link_alloc(){
-    phit_list=new phit[latency];
+    phit_list=new flit[latency];
 
     //phit[0] conncect to sender
     //phit[latency-1] connect to receiver
-    for(int i=0; i<latency; ++i){
-        phit_list[i].valid=false;
-        phit_list[i].cur_link=this;
+    for(int i = 0; i < latency; ++i){
+        phit_list[i].valid = false;
     }
+    out = phit_list[latency - 1];
 }
 
-void link::advance_one_cycle(){
-    for(int i=0;i<latency;++i){
-        if(back_pressure){
-            
-        }
-        phit_list[0]=src_node
-        
-    }
-
+void link::consume(){
+    in_latch = *in;
+    
 }
 
+void link::produce(){
+    int out = phit_list[latency - 1];
+    for(int i = latency - 1; i > 0; --i){
+        phit_list[i] = phit_list[i - 1];
+    }
+    phit_list[0] = in_latch;
+}
 
