@@ -8,6 +8,7 @@ public:
     char dst_z;
     char dst_y;
     char dst_x;
+    char dir_out;
     int priority_dist;
     int priority_age;
     char src_z;

@@ -13,11 +13,14 @@ void routing_comp::routing_comp_init(char Cur_x, char Cur_y, char Cur_z, char Di
     eject_enable = false;
     flit_after_RC.valid = false;
     flit_eject.valid = false;
+
+    return;
 }
 
 void routing_comp::consume(){
     in_latch = *in;
     out_avail_latch = *out_avail;
+    return;
 }
 
 void routing_comp::produce(){
@@ -145,13 +148,19 @@ void routing_comp::produce(){
             eject_enable = false;
         return;
     }
-
+//not eject_enable, the traffic is bypass
     if(out_avail){
-        flit_after_RC.
+        flit_after_RC = in_latch;
+        if(in_latch.vaild && (in_latch.flit_type == HEAD_FLIT || in_latch.flit_type == SINGLE_FLIT)){
+            flit_after_RC.dir_out = dir;
+            flit_after_RC.VC_class = new_VC_class;
+            flit_after_RC.priority_dist = flit_after_RC.priority_dist - 1;
+        }
+        in_avail = true;
+        out = flit_after_RC;
     }
-                
 
-
+    return;
 }
 
 
