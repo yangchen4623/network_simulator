@@ -20,6 +20,7 @@
 #define DIR_XNEG 4
 #define DIR_YNEG 5
 #define DIR_ZNEG 6
+#define DIR_EJECT 7
 #define LINKDELAY 50 
 /* packet format
 * head flit
@@ -54,5 +55,9 @@ tail flit
 #define ERR_FLIT_TIMEOUT 3
 #define ERR_PCKT_TIMEOUT 4
 #define ERR_PCKT_WRONG 5
+
+#define ROUTING_DOR_XYZ 0
+#define ROUTING_ROMM 1
+#define ROUTING_HEUR 2
 
 #endif

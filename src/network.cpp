@@ -1,23 +1,9 @@
 #include "link.h"
 #include "node.h"
+#include "network.h"
 #include<stdlib.h>
 
-class network{
-    private:
-        int size_x;
-        int size_y;
-        int size_z;
-        node*** node_list;
-        link*** link_list_xpos;
-        link*** link_list_xneg;
-        link*** link_list_ypos;
-        link*** link_list_yneg;
-        link*** link_list_zpos;
-        link*** link_list_zneg;
-    public:
-        //constructor
-        network(int x, int y, int z);
-};
+
 
 network::network(int x, int y, int z){
     size_x = x;
@@ -148,9 +134,21 @@ network::network(int x, int y, int z){
     //now link all the links and nodes togther
     for(int i = 0; i < size_z; ++i){
         for(int j = 0; j < size_y ++j){
-            for(int k = 0; k < size_z; ++k){
-                link_list_xpos[i][j][k]a
-                }
+            for(int k = 0; k < size_x; ++k){
+                link_list_xpos[i][j][k].src_node = &node_list[i][j][k];
+                link_list_xpos[i][j][k].dst_node = &node_list[i][j][(k + 1 == size_x) ? 0 : (k + 1)];
+                link_list_ypos[i][j][k].src_node = &node_list[i][j][k];
+                link_list_ypos[i][j][k].dst_node = &node_list[i][(j + 1 == size_y) ? 0 : (j + 1)][k];
+                link_list_zpos[i][j][k].src_node = &node_list[i][j][k];
+                link_list_zpos[i][j][k].dst_node = &node_list[(i + 1 == size_z) ? 0 : (i + 1)][j][k];
+                link_list_xneg[i][j][k].src_node = &node_list[i][j][k];
+                link_list_xneg[i][j][k].dst_node = &node_list[i][j][(k == 0) ? (size_z - 1) : k];
+                link_list_yneg[i][j][k].src_node = &node_list[i][j][k];
+                link_list_yneg[i][j][k].dst_node = &node_list[i][(j == 0) ? (size_y - 1) : j][k];
+                link_list_zneg[i][j][k].src_node = &node_list[i][j][k];
+                link_list_zneg[i][j][k].dst_node = &node_list[(i == 0) ? (size_x - 1) : 0][j][k];
+            }
         }
     }
 }
+

@@ -11,7 +11,6 @@ link::link(int Latency, int Dir, node* Src_node, node* Dst_node){
     dir = Dir;
     src_node = Src_node;
     dst_node = Dst_node;
-    in = &(Src_node -> out);
     //allocate space for all the flits in alloc
 }
 
@@ -27,7 +26,7 @@ void link::link_alloc(){
 }
 
 void link::consume(){
-    in_latch = *in;
+    in_latch = src_node -> out[dir];
     
 }
 
