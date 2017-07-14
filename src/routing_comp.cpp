@@ -159,6 +159,10 @@ void routing_comp::produce(){
         in_avail = true;
         out = flit_after_RC;
     }
+    else{
+        in_avail = false;
+        out = flit_after_RC;
+    }
 
     return;
 }

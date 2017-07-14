@@ -60,4 +60,12 @@ tail flit
 #define ROUTING_ROMM 1
 #define ROUTING_HEUR 2
 
+#define VC_IDLE 0
+#define VC_WAITING_FOR_OVC 1
+#define VC_ACTIVE 2
+#define VC_WAITING_FOR_CREDITES 3
+
+#define SA_FARTHEST_FIRST 0
+#define SA_OLDEST_FIRST 1
+#define SA_MIXED 2
 #endif
