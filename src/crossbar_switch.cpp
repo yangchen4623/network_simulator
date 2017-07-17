@@ -2,7 +2,7 @@
 #include "flit.h"
 #include "crossbar_switch.h"
 
-crossbar_switch::init(flit** In_list, bool** Out_avail){
+crossbar_switch::crossbar_switch_init(flit** In_list, bool** Out_avail){
     for(int i = 0; i < PORT_NUM; ++i){
         for(int j = 0; j < N_FAN_IN; ++j){
             in_latch[i][j].valid = false;

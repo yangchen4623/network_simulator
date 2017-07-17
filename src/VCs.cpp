@@ -2,12 +2,12 @@
 #include "define.h"
 #include "flit.h"
 #include "math.h"
-void VCs::VCs_init(int Dir, flit* In, bool** Out_avail){
+#include "crossbar_switch.h"
+void VCs::VCs_init(int Dir, flit* In, crossbar_switch* Sw){
     dir = Dir;
     in = In;
-    for(int i = 0; i < VC_NUM; ++i){
-        out_avail[i] = Out_avail[i];
-    }
+    sw = Sw;
+    
     //init all in_latches
     for(int i = 0; i < VC_NUM; ++i){
         in_latch[i].valid = false;
@@ -61,7 +61,7 @@ void VCs::consume(){
 
     //latch the out avail 
     for(int i = 0; i < VC_NUM; ++i){
-        out_avail_latch[i] = *(out_avail[i]);
+        out_avail_latch[i] = sw->lookup_in_avail((dir - 1) * VC_NUM + i, dir);
     }
 
     //then call all the VC consume() function

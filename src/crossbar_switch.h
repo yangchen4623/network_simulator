@@ -25,9 +25,10 @@ public:
 
    reduction_tree tree_list[PORT_NUM];
 
-   void switch_init();
+   void crossbar_switch_init(flit** In_list, bool** Out_avail);
    void consume();
    void produce();
+   bool lookup_in_avail(int port_id, int our_dir);
    void free();
 };
 

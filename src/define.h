@@ -68,4 +68,10 @@ tail flit
 #define SA_FARTHEST_FIRST 0
 #define SA_OLDEST_FIRST 1
 #define SA_MIXED 2
+
+#define INPUT_Q_SIZE 256
+#define CREDIT_BACK_PERIOD 100
+#define CREDIT_THRESHOlD 160
+
+#define INJECTION_NEAREST_NEIGHBOR 1
 #endif

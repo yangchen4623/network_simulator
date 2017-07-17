@@ -10,6 +10,7 @@
 #include "define.h"
 #include "flit.h"
 #include "fifo.h"
+#include "crossbar_switch.h"
 class VCs{
 public:
     flit* in;
@@ -18,12 +19,13 @@ public:
     int grant; // one-hot code indicate which VC is being allocated to the incoming flit
     bool in_avail;
     bool out_avail_latch[VC_NUM];
-    bool* out_avail[VC_NUM];
+    
+    crossbar_switch* sw;
     
     flit out[VC_NUM];
     fifo VC_array[VC_NUM];
     int VC_state[VC_NUM];
-    void VCs_init(int Dir, flit* In, bool** Out_avail);
+    void VCs_init(int Dir, flit* In, crossbar_switch* Sw);
     void consume();
     void produce();
 
