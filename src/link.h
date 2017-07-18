@@ -8,18 +8,21 @@ class link{
     public:
         int latency;
         int dir;// direction
-        node* src_node;
-        node* dst_node;
+        flit* in;
+        flit in_latch;
+        flit out;
+        node* src;
+        node* dst;
+
+
         flit* phit_list;
         flit in_latch; // this is a latched for 
 
         flit out;
-        link();
-        link(int Latency, int Dir, node* Src_node, node* Dst_node);
-        void link_init();
+        void link_init(int Latency, int Dir, flit* In, node* Src, node* Dst);
         void consume();
         void produce();
-        void link_free();
+        void free();
 
 };
 

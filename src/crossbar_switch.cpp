@@ -2,7 +2,8 @@
 #include "flit.h"
 #include "crossbar_switch.h"
 
-crossbar_switch::crossbar_switch_init(flit** In_list, bool** Out_avail){
+crossbar_switch::crossbar_switch_init(int Mode, flit** In_list, bool** Out_avail){
+    mode = Mode;
     for(int i = 0; i < PORT_NUM; ++i){
         for(int j = 0; j < N_FAN_IN; ++j){
             in_latch[i][j].valid = false;
@@ -30,7 +31,7 @@ crossbar_switch::crossbar_switch_init(flit** In_list, bool** Out_avail){
 
 
     for(int i = 0; i < PORT_NUM; ++i){
-        tree_list[i].init(N_fan_in, i + 1, 4, FARTHEST_FIRST, 18, 6, 2, in_list_to_tree[i], out_avail_to_tree[i]);
+        tree_list[i].init(N_fan_in, i + 1, 4, mode, 18, 6, 2, in_list_to_tree[i], out_avail_to_tree[i]);
     }
     
 

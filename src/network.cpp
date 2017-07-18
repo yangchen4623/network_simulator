@@ -4,8 +4,7 @@
 #include<stdlib.h>
 
 
-
-network::network(int x, int y, int z){
+void network::network_init(int x, int y, int z){
     size_x = x;
     size_y = y;
     size_z = z;
@@ -135,20 +134,44 @@ network::network(int x, int y, int z){
     for(int i = 0; i < size_z; ++i){
         for(int j = 0; j < size_y ++j){
             for(int k = 0; k < size_x; ++k){
-                link_list_xpos[i][j][k].src_node = &node_list[i][j][k];
-                link_list_xpos[i][j][k].dst_node = &node_list[i][j][(k + 1 == size_x) ? 0 : (k + 1)];
-                link_list_ypos[i][j][k].src_node = &node_list[i][j][k];
-                link_list_ypos[i][j][k].dst_node = &node_list[i][(j + 1 == size_y) ? 0 : (j + 1)][k];
-                link_list_zpos[i][j][k].src_node = &node_list[i][j][k];
-                link_list_zpos[i][j][k].dst_node = &node_list[(i + 1 == size_z) ? 0 : (i + 1)][j][k];
-                link_list_xneg[i][j][k].src_node = &node_list[i][j][k];
-                link_list_xneg[i][j][k].dst_node = &node_list[i][j][(k == 0) ? (size_z - 1) : k];
-                link_list_yneg[i][j][k].src_node = &node_list[i][j][k];
-                link_list_yneg[i][j][k].dst_node = &node_list[i][(j == 0) ? (size_y - 1) : j][k];
-                link_list_zneg[i][j][k].src_node = &node_list[i][j][k];
-                link_list_zneg[i][j][k].dst_node = &node_list[(i == 0) ? (size_x - 1) : 0][j][k];
+                link_list_xpos[i][j][k].link_init(LINKLATENCY, DIR_XPOS, &(node_list[i][j][k].out[DIR_XPOS - 1]), &node_list[i][j][k], &node_list[i][j][(k + 1 == size_x) ? 0 : (k + 1)]);
+
+                link_list_ypos[i][j][k].link_init(LINKLATENCY, DIR_YPOS, &(node_list[i][j][k].out[DIR_YPOS - 1]),&node_list[i][j][k],&node_list[i][(j + 1 == size_y) ? 0 : (j + 1)][k]);
+
+                link_list_zpos[i][j][k].link_init(LINKLATENCY, DIR_ZPOS, &(node_list[i][j][k].out[DIR_ZPOS - 1]),&node_list[i][j][k],&node_list[(i + 1 == size_z) ? 0 : (i + 1)][j][k]);
+
+                link_list_xneg[i][j][k].link_init(LINKLATENCY, DIR_XNEG, &(node_list[i][j][k].out[DIR_XNEG - 1]), &node_list[i][j][k], &node_list[i][j][(k == 0) ? (size_z - 1) : k]);
+ 
+                link_list_yneg[i][j][k].link_init(LINKLATENCY, DIR_YNEG, &(node_list[i][j][k].out[DIR_YNEG - 1]), &node_list[i][j][k], &node_list[i][(j == 0) ? (size_y - 1) : j][k]);
+
+                link_list_zneg[i][j][k].link_init(LINKLATENCY, DIR_ZNEG, &(node_list[i][j][k].out[DIR_ZNEG - 1]), &node_list[i][j][k], &node_list[(i == 0) ? (size_x - 1) : 0][j][k]);
+                
+                node_list[i][j][k].node_init(cur_x, cur_y, cur_z, &(link_list_xpos[i][j][(k + 1 == size_x) ? 0 : (k + 1)].out), &(link_list_ypos[i][(j + 1 == size_y) ? 0 : (j + 1)][k].out), &(link_list_zpos[(i + 1 == size_z) ? 0 : (i + 1)][j][k]), &(link_list_xneg[i][j][(k == 0) ? (size_z - 1) : k].out), &(link_list_yneg[i][(j == 0) ? (size_y - 1) : j][k].out), &(link_list_zneg[(i == 0) ? (size_x - 1) : 0][j][k].out));
+
             }
         }
     }
+}
+
+void network::consume(){
+    in_latch[0] = *in_xpos;
+    in_latch[1] = *in_ypos;
+    in_latch[2] = *in_zpos;
+    in_latch[3] = *in_xeng;
+    in_latch[4] = *in_yneg;
+    in_latch[5] = *in_zneg;
+    
+    app_core.consume();
+    internal_router.consume();
+}
+
+
+void network::produce(){
+    app_core.produce();
+    internal_router.produce():
+}
+
+void newtork::free(){
+    internal_router.free();
 }
 

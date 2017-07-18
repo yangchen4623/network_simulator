@@ -1,9 +1,13 @@
 #include "router.h"
 
-void router::router_init(int Cur_x, int Cur_y, int Cur_z, flit** In, flit** Inject){
+void router::router_init(int Cur_x, int Cur_y, int Cur_z, int SA_Mode, int Routing_mode, flit** In, flit** Inject){
     cur_x = Cur_x;
     cur_y = Cur_y;
     cur_z = Cur_z;
+
+    SA_mode = SA_Mode;
+    routing_mode = Routing_mode;
+
 
     credit_period_counter = 0;
 
@@ -28,7 +32,7 @@ void router::router_init(int Cur_x, int Cur_y, int Cur_z, flit** In, flit** Inje
     for(int i = 0; i < PORT_NUM; ++i){
         flit_list_to_RC[i] = &(input_buffer_list[i].out);
         in_avail_from_VA[i] = &(VCs_list[i].in_avail);
-        RC_list[i].routing_comp_init(cur_x, cur_y, cur_z, i + 1, ROUTING_DOR_XYZ, flit_list_to_RC[i], in_avail_from_VA[i]);
+        RC_list[i].routing_comp_init(cur_x, cur_y, cur_z, i + 1, routing_mode, flit_list_to_RC[i], in_avail_from_VA[i]);
     }
 
     for(int i = 0; i < PORT_NUM; ++i){
@@ -42,7 +46,7 @@ void router::router_init(int Cur_x, int Cur_y, int Cur_z, flit** In, flit** Inje
     for(int i = 0; i < PORT_NUM; ++i){
         in_avail_from_ST[i] = &(out_avail_for_passthru[i]); //initially this is for injetion   
     }
-    sw.crossbar_switch_init(flit_list_to_SA, in_avail_from_ST);
+    sw.crossbar_switch_init(SA_mode, flit_list_to_SA, in_avail_from_ST);
 
 
     //init all avails

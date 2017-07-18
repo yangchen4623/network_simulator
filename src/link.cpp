@@ -1,40 +1,42 @@
 #include "link.h"
 
-link::link(){
-    latency = LINKDELAY;
-}
 
 
-
-link::link(int Latency, int Dir, node* Src_node, node* Dst_node){
+link::link_init(int Latency, int Dir, flit* In, node* Src, node* Dst){
     latency = Latency;
     dir = Dir;
-    src_node = Src_node;
-    dst_node = Dst_node;
-    //allocate space for all the flits in alloc
-}
-
-void link::link_alloc(){
-    phit_list=new flit[latency];
-
+    in = In;
+    dst = Dst;
+    src = Src;
+    if(!(phit_list = (flit*)malloc(latency * sizeof(flit)))){
+        printf("No mem space for phit list in link from (%d, %d, %d) to (%d, %d, %d)\n", src->cur_x, src->cur_y, src->cur_z, dst->x, dst->y, dst->z);
+        exit(-1);
+    }
     //phit[0] conncect to sender
     //phit[latency-1] connect to receiver
     for(int i = 0; i < latency; ++i){
         phit_list[i].valid = false;
     }
     out = phit_list[latency - 1];
+
+    //allocate space for all the flits in alloc
 }
 
+
 void link::consume(){
-    in_latch = src_node -> out[dir];
+    in_latch = *in;
     
 }
 
 void link::produce(){
-    int out = phit_list[latency - 1];
+    out = phit_list[latency - 1];
     for(int i = latency - 1; i > 0; --i){
         phit_list[i] = phit_list[i - 1];
     }
     phit_list[0] = in_latch;
+}
+
+void link::free(){
+    free(phit_list);
 }
 

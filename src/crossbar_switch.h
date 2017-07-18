@@ -25,7 +25,7 @@ public:
 
    reduction_tree tree_list[PORT_NUM];
 
-   void crossbar_switch_init(flit** In_list, bool** Out_avail);
+   void crossbar_switch_init(int Mode, flit** In_list, bool** Out_avail);
    void consume();
    void produce();
    bool lookup_in_avail(int port_id, int our_dir);

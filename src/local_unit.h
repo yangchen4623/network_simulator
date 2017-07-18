@@ -2,6 +2,8 @@
 #define LOCAL_UNIT_H
 #include "flit.h"
 class local_unit{
+
+    int cycle_counter = 0;
     flit inject[PORT_NUM];
     bool* inject_avail[PORT_NUM];
     flit* eject[PORT_NUM];
@@ -24,6 +26,12 @@ class local_unit{
 
     int eject_pckt_counter[i];
     int eject_flit_counter[i];
+    int cur_eject_src_x[i];
+    int cur_eject_src_y[i];
+    int cur_eject_src_z[i];
+    int cur_eject_pckt_id[i];
+
+    int eject_state[i];
 
     bool all_pckt_rcvd = false;
 

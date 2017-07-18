@@ -74,4 +74,11 @@ tail flit
 #define CREDIT_THRESHOlD 160
 
 #define INJECTION_NEAREST_NEIGHBOR 1
+#define INJECTION_GAP 1
+#define PACKET_NUM 10
+#define PACKET_SIZE 10
+
+#define EJECT_IDLE 0
+#define EJECT_RECVING 1
+#define EJECT_ERROR 2
 #endif

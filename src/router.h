@@ -48,11 +48,14 @@ public:
     bool out_avail_for_inject[PORT_NUM];
     bool downstream_avail[PORT_NUM];
     //the availability for bypass traffic to use the out link
-    //
+    
+    int SA_mode;
+    int routing_mode;
+
     //
     bool occupy_by_inject[PORT_NUM]; //bool value denoting the out port is occupy the inject traffic
     
-    void router_init(int Cur_x, int Cur_y, int Cur_z, flit** In, flit** Inject);
+    void router_init(int Cur_x, int Cur_y, int Cur_z, int SA_Mode, int Routing_mode, flit** In, flit** Inject);
 
     void consume();
     void produce();

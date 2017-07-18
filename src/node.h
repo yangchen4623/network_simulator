@@ -20,6 +20,9 @@ public:
     flit* in_latch_ptrs[PORT_NUM];
     flit* inject_latch_ptrs[PORT_NUM];
 
+    bool* inject_avail_ptrs[PORT_NUM];
+    flit* eject_ptrs[PORT_NUM];
+
 
     flit out_xpos;
     flit out_ypos;
