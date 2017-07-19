@@ -23,6 +23,7 @@ class local_unit{
     
     int inject_pckt_counter[i];
     int inject_flit_counter[i];
+    int inject_control_counter[i];
 
     int eject_pckt_counter[i];
     int eject_flit_counter[i];
