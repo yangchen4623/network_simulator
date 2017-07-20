@@ -1,6 +1,7 @@
 #ifndef ROUTING_CONP_H
 #define ROUTING_COMP_H
 #include "define.h"
+#include "flit.h"
 class routing_comp{
 public: 
     char mode; 
@@ -18,14 +19,14 @@ public:
     flit flit_eject;
     bool eject_enable;
 
-    void routing_comp_init(int Cur_x, int Cur_y, int Cur_z, int Dir_in, int mode, flit* In, bool* Out_avail);
+	void routing_comp_init(char Cur_x, char Cur_y, char Cur_z, char Dir_in, char Mode, flit* In, bool* Out_avail);
     void consume();
     void produce();
 
 
 
 
-}
+};
 
 
 

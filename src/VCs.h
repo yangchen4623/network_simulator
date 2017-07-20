@@ -28,6 +28,7 @@ public:
     void VCs_init(int Dir, flit* In, crossbar_switch* Sw);
     void consume();
     void produce();
+	void VCs_free();
 
 };
 

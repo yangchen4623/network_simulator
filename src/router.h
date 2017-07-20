@@ -1,6 +1,10 @@
 #ifndef ROUTER_H
 #define ROUTER_H
 #include "flit.h"
+#include "define.h"
+#include  "fifo.h"
+#include "routing_comp.h"
+#include "VCs.h"
 class router{
 public:
 
@@ -29,7 +33,7 @@ public:
     flit* flit_list_to_RC[PORT_NUM];
     bool* in_avail_from_RC[PORT_NUM];
     //route compute
-    route_comp RC_list[PORT_NUM];
+    routing_comp RC_list[PORT_NUM];
 
     flit* flit_list_to_VA[PORT_NUM];
     bool* in_avail_from_VA[PORT_NUM];
@@ -59,7 +63,7 @@ public:
 
     void consume();
     void produce();
-    void free();
+    void router_free();
 
     
 

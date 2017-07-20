@@ -1,8 +1,12 @@
 #include "define.h"
 #include "flit.h"
 #include "crossbar_switch.h"
+#include<stdio.h>
+#include<stdlib.h>
 
-crossbar_switch::crossbar_switch_init(int Mode, flit** In_list, bool** Out_avail){
+void crossbar_switch::crossbar_switch_init(int Mode, flit** In_list, bool** Out_avail){
+	N_fan_in = N_FAN_IN;
+	N_fan_out = PORT_NUM;
     mode = Mode;
     for(int i = 0; i < PORT_NUM; ++i){
         for(int j = 0; j < N_FAN_IN; ++j){
@@ -31,18 +35,18 @@ crossbar_switch::crossbar_switch_init(int Mode, flit** In_list, bool** Out_avail
 
 
     for(int i = 0; i < PORT_NUM; ++i){
-        tree_list[i].init(N_fan_in, i + 1, 4, mode, 18, 6, 2, in_list_to_tree[i], out_avail_to_tree[i]);
+        tree_list[i].reduction_tree_init(N_fan_in, i + 1, 4, mode, 18, 6, 2, in_list_to_tree[i], out_avail_to_tree[i]);
     }
     
 
 }
 
-void crossbar::consume(){
+void crossbar_switch::consume(){
     //latch all the in data
     for(int i = 0; i < PORT_NUM; ++i){
         for(int j = 0; j < N_FAN_IN; ++j){
             if(flit_in[j]->valid && flit_in[j]->dir_out == i + 1){
-                in_latch[i][j] = *(flit[i]);
+                in_latch[i][j] = *(flit_in[j]);
             }
         }
     }
@@ -85,8 +89,8 @@ bool crossbar_switch::lookup_in_avail(int port_id, int out_dir){
     return tree_list[out_dir - 1].in_avail[port_id];
 }
 
-void crossbar_switch::free(){
+void crossbar_switch::crossbar_switch_free(){
     for(int i = 0; i < PORT_NUM; ++i){
-        tree_list[i].free();
+        tree_list[i].reduction_tree_free();
     }
 }

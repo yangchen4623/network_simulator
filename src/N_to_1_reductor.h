@@ -20,11 +20,11 @@ public:
     flit* in_slot; //will allocate by N_fan_in slots after init
 
 
-    void N_to_1_reductor_alloc(int N_Fan_in);
+    void alloc(int N_Fan_in);
     void N_to_1_reductor_init(int Out_dir, int Level, int Id, int Mode, flit** In_list, bool* Out_avail);
     void consume();
     void produce();
-    void free();
+	void N_to_1_reductor_free();
 };
 
 

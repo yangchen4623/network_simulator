@@ -19,6 +19,8 @@ void router::router_init(int Cur_x, int Cur_y, int Cur_z, int SA_Mode, int Routi
         out[i].valid = false;
         eject[i].valid = false;
         inject_avail[i] = true;
+		inject_latch[i].valid = false;
+		in_latch[i].valid = false;
     }
 
     //allocate space for those subentities need dynamic allocation
@@ -46,14 +48,14 @@ void router::router_init(int Cur_x, int Cur_y, int Cur_z, int SA_Mode, int Routi
     for(int i = 0; i < PORT_NUM; ++i){
         in_avail_from_ST[i] = &(out_avail_for_passthru[i]); //initially this is for injetion   
     }
-    sw.crossbar_switch_init(SA_mode, flit_list_to_SA, in_avail_from_ST);
+	xbar.crossbar_switch_init(SA_mode, flit_list_to_SA, in_avail_from_ST);
 
 
     //init all avails
     for(int i = 0; i < PORT_NUM; ++i){
         occupy_by_inject[i] = false;
         downstream_avail[i] = true;
-        out_avail_for_passthur[i] = true;
+        out_avail_for_passthru[i] = true;
         out_avail_for_inject[i] = true;
     }
 
@@ -62,7 +64,7 @@ void router::router_init(int Cur_x, int Cur_y, int Cur_z, int SA_Mode, int Routi
 void router::consume(){
     //latch in and inject
     for(int i = 0; i < PORT_NUM; ++i){
-        if(in[i].valid && in[i]->flit_type == CREDIT_FLIT){
+        if(in[i]->valid && in[i]->flit_type == CREDIT_FLIT){
             downstream_credits[i] = in[i]->payload;
             in_latch[i].valid = false;
         }
@@ -128,8 +130,8 @@ void router::produce(){
     //decide all of the out_avail(s)
     for(int i = 0; i < PORT_NUM; ++i){
         if(credit_period_counter != CREDIT_BACK_PERIOD - 1){
-            if(downstream_credits[i] >= CREDIT_THRESHOLD){
-                if(occupy_by_inject[i] || (sw.out[i] == false)){
+			if (downstream_credits[i] >= CREDIT_THRESHOlD){
+				if (occupy_by_inject[i] || (xbar.out[i].valid == false)){
                     out_avail_for_inject[i] = true;
                 }
                 if(!occupy_by_inject[i])
@@ -163,14 +165,21 @@ void router::produce(){
             out[i] = inject_latch[i];
     }
 
+	//update the eject
+	for (int i = 0; i < PORT_NUM; ++i){
+		eject[i] = RC_list[i].flit_eject;
+	}
+
 
 
 }
 
-void router::free(){
+void router::router_free(){
     for(int i = 0; i < PORT_NUM; ++i){
-        input_buffer_list[i].free();
+        input_buffer_list[i].fifo_free();
+		VCs_list[i].VCs_free();
     }
-    xbar.free();
+
+    xbar.crossbar_switch_free();
 }
 

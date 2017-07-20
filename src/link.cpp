@@ -1,15 +1,15 @@
 #include "link.h"
+#include <stdlib.h>
+#include <stdio.h>
 
-
-
-link::link_init(int Latency, int Dir, flit* In, node* Src, node* Dst){
+void link::link_init(int Latency, int Dir, flit* In, node* Src, node* Dst){
     latency = Latency;
     dir = Dir;
     in = In;
     dst = Dst;
     src = Src;
     if(!(phit_list = (flit*)malloc(latency * sizeof(flit)))){
-        printf("No mem space for phit list in link from (%d, %d, %d) to (%d, %d, %d)\n", src->cur_x, src->cur_y, src->cur_z, dst->x, dst->y, dst->z);
+        printf("No mem space for phit list in link from (%d, %d, %d) to (%d, %d, %d)\n", src->cur_x, src->cur_y, src->cur_z, dst->cur_x, dst->cur_y, dst->cur_z);
         exit(-1);
     }
     //phit[0] conncect to sender
@@ -19,6 +19,7 @@ link::link_init(int Latency, int Dir, flit* In, node* Src, node* Dst){
     }
     out = phit_list[latency - 1];
 
+	in_latch.valid = false;
     //allocate space for all the flits in alloc
 }
 
@@ -36,7 +37,7 @@ void link::produce(){
     phit_list[0] = in_latch;
 }
 
-void link::free(){
+void link::link_free(){
     free(phit_list);
 }
 

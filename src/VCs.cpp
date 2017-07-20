@@ -7,10 +7,13 @@ void VCs::VCs_init(int Dir, flit* In, crossbar_switch* Sw){
     dir = Dir;
     in = In;
     sw = Sw;
+	in_avail = true;
+
     
     //init all in_latches
     for(int i = 0; i < VC_NUM; ++i){
         in_latch[i].valid = false;
+		out_avail_latch[i] = true;
     }
     for(int i = 0; i < VC_NUM; ++i){
         VC_array[i].fifo_init(VC_SIZE, &(in_latch[i]), &(out_avail_latch[i]));
@@ -21,7 +24,7 @@ void VCs::VCs_init(int Dir, flit* In, crossbar_switch* Sw){
     }
     //init all the VC states to idle state
     for(int i = 0; i < VC_NUM; ++i){
-        VC_state[i] = VC_IDLE:
+		VC_state[i] = VC_IDLE;
     }
     grant = 0; // initially no grants
     return;
@@ -29,9 +32,10 @@ void VCs::VCs_init(int Dir, flit* In, crossbar_switch* Sw){
 
 void VCs::consume(){
     //do the VC allocation first
+	int i = 0;
     if(in->valid && (in->flit_type == HEAD_FLIT || in->flit_type == SINGLE_FLIT)){//allocate this flit to next available idle VC
-        if(!in->VC_NUM){
-            for(int i = 0; i < VC_NUM - 1; ++i){
+        if(!(in->VC_class)){
+            for(i = 0; i < VC_NUM - 1; ++i){
                 if(VC_state[i] == VC_IDLE){
                     grant = (1 << i);
                     break;
@@ -41,7 +45,7 @@ void VCs::consume(){
                 grant = 0;
         }
         else{
-            for(int i = 1; i < VC_NUM; ++i){
+            for(i = 1; i < VC_NUM; ++i){
                 if(VC_state[i] == VC_IDLE){
                     grant = (1 << i );
                     break;
@@ -52,7 +56,7 @@ void VCs::consume(){
         }
     }
     if(grant != 0){
-        int grant_index = (int)(log2(grant));
+        int grant_index = (int)(log2((double)grant));
         if(in->valid && VC_array[grant_index].in_avail){
             //latch the in data
             in_latch[grant_index] = *in;
@@ -102,7 +106,7 @@ void VCs::produce(){
                     else if(VC_array[i].in_latch.valid){
                         VC_state[i] = VC_ACTIVE;
                     }
-                    else if(VC_array[i].flit_out.valid && (VC_array[i].flit_out.flit_type == TAIL_FLIT || VC_array[i].flit_out.flit_type == SINGLE_FLIT)){
+                    else if(VC_array[i].out.valid && (VC_array[i].out.flit_type == TAIL_FLIT || VC_array[i].out.flit_type == SINGLE_FLIT)){
                         VC_state[i] = VC_IDLE;
                     }
                     else{
@@ -110,7 +114,7 @@ void VCs::produce(){
                     }
                 }
                 else{ //there are at least 2 flits in the VC
-                    if(VC_array[i].flit_out.valid && (VC_array[i].flit_out.flit_type == TAIL_FLIT || VC_array[i].flit_out.flit_type == SINGLE_FLIT)){ // the next out flit will be a head flit
+                    if(VC_array[i].out.valid && (VC_array[i].out.flit_type == TAIL_FLIT || VC_array[i].out.flit_type == SINGLE_FLIT)){ // the next out flit will be a head flit
                         VC_state[i] = VC_WAITING_FOR_OVC;
                     }
                     else{
@@ -144,7 +148,7 @@ void VCs::produce(){
     //
     //update in_avail
     if(grant !=0){
-        int grant_index = (int)(log2(grant));
+        int grant_index = (int)(log2((double)grant));
         in_avail = VC_array[grant_index].in_avail;
     }
     else{
@@ -158,3 +162,10 @@ void VCs::produce(){
 
 }
 
+
+void VCs::VCs_free(){
+	for (int i = 0; i < VC_NUM; ++i){
+		VC_array[i].fifo_free();
+	}
+
+}

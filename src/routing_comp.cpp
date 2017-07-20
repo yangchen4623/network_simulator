@@ -7,8 +7,11 @@ void routing_comp::routing_comp_init(char Cur_x, char Cur_y, char Cur_z, char Di
     dir_in = Dir_in;
     mode = Mode;
     in_avail = true;
+	in_latch.valid = false;
     out.valid = false;
     out_avail = Out_avail;
+	out_avail_latch = false;
+	out.valid = false;
     in = In;
     eject_enable = false;
     flit_after_RC.valid = false;
@@ -86,14 +89,15 @@ void routing_comp::produce(){
         }
 
     }
-    int new_VC_class; 
+    bool new_VC_class; 
     //the VC_class needs to be changed when either crossing the dateline or changing dimension
-    int old_VC_class = in_latch.VC_class;
-    if(dir_in != dir + 3 && dir != dir_in + 3){
-        if(dir == DIR_XPOS || dir == DIR_YPOS || dir == DIR_ZPOS)
-            new_VC_class = 0;
-        else 
-            new_VC_class = 1;
+    bool old_VC_class = in_latch.VC_class;
+	if (dir_in != dir + 3 && dir != dir_in + 3){
+		if (dir == DIR_XPOS || dir == DIR_YPOS || dir == DIR_ZPOS)
+			new_VC_class = 0;
+		else
+			new_VC_class = 1;
+	}
     else{
         switch(dir){
             case DIR_XPOS:
@@ -119,7 +123,7 @@ void routing_comp::produce(){
                     new_VC_class = 0;
                 else
                     new_VC_class = old_VC_class;
-            break;            
+				break;            
             case DIR_ZPOS:
                 if(cur_z == 0) 
                     new_VC_class = 1;
@@ -151,7 +155,7 @@ void routing_comp::produce(){
 //not eject_enable, the traffic is bypass
     if(out_avail){
         flit_after_RC = in_latch;
-        if(in_latch.vaild && (in_latch.flit_type == HEAD_FLIT || in_latch.flit_type == SINGLE_FLIT)){
+        if(in_latch.valid && (in_latch.flit_type == HEAD_FLIT || in_latch.flit_type == SINGLE_FLIT)){
             flit_after_RC.dir_out = dir;
             flit_after_RC.VC_class = new_VC_class;
             flit_after_RC.priority_dist = flit_after_RC.priority_dist - 1;

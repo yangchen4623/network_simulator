@@ -1,17 +1,21 @@
 #include "flit.h"
 
+flit::flit(){
+	valid = false;
+}
+
 flit::flit(bool Valid, char Type, int Payload, int Flit_id){
     valid = Valid;
-    type = Type;
+    flit_type = Type;
     payload = Payload;
     flit_id = Flit_id;
 }
 
 flit::flit(bool Valid, char Type, bool Vc_class, char Dst_z, char Dst_y, char Dst_x, \
          int Priority_dist, int Priority_age, char Src_z, char Src_y, \
-         char Src_x, int Packet_id, int Packet_size){
+         char Src_x, int Packet_id, int Flit_id, int Payload, int Packet_size){
     valid = Valid;
-    type = Type;
+    flit_type = Type;
     VC_class = Vc_class;
     dst_z = Dst_z;
     dst_y = Dst_y;

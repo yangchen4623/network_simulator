@@ -1,4 +1,7 @@
+#include "define.h"
 #include "N_to_1_reductor.h"
+#include<stdlib.h>
+#include<stdio.h>
 
 void N_to_1_reductor::alloc(int N_Fan_in){
     N_fan_in = N_Fan_in;
@@ -21,13 +24,14 @@ void N_to_1_reductor::alloc(int N_Fan_in){
         printf("No mem space for %d slots for N_fan_in* in_slot in reductor in %d dir, %d level, %d id\n", N_fan_in, out_dir, level, id);
         exit(-1);
     }
+
     
 
 }
 
-void N_to_1_reductor::N_to_1_reductor_init(int Our_dir, int Level, int Id, int Mode, flit** In_list, bool* Out_avail){   
+void N_to_1_reductor::N_to_1_reductor_init(int Out_dir, int Level, int Id, int Mode, flit** In_list, bool* Out_avail){   
     //init all the arrays
-    N_fan_in = N_Fan_in;
+
     out_dir = Out_dir;
     level = Level;
     id = Id;
@@ -41,6 +45,8 @@ void N_to_1_reductor::N_to_1_reductor_init(int Our_dir, int Level, int Id, int M
         in_avail[i] = true;
         in_slot[i].valid = false;
     }
+	out_avail = Out_avail;
+	out.valid = false;
 
     return;
 }
@@ -59,9 +65,9 @@ void N_to_1_reductor::produce(){
     if(out_avail_latch){
         for(int i = 0; i < N_fan_in; ++i){
             if(i == selector)
-                in_avail[i] == true;
+                in_avail[i] = true;
             else
-                in_avail[i] == !(in_slot[i].valid);
+                in_avail[i] = !(in_slot[i].valid);
         }       
     }
     else{
@@ -95,12 +101,12 @@ void N_to_1_reductor::produce(){
         }
     }
     //then produce out 
-    out = in_selector[selector];
+    out = in_slot[selector];
 
     return;
 }
 
-void N_to_1_reductor::free(){
+void N_to_1_reductor::N_to_1_reductor_free(){
     free(flit_in);
     free(in_latch);
     free(in_slot);

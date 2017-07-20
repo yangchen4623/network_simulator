@@ -1,10 +1,16 @@
 #include "fifo.h"
+#include <stdlib.h>
+#include <stdio.h>
 void fifo::fifo_init(int Size, flit* In, bool* Out_avail){
     size = Size;
     if(!(flit_array = (flit*)malloc(size * sizeof(flit)))){
         printf("no mem space for %d flits pointed by flit_array\n",size);
         exit(-1);
     }
+	for (int i = 0; i < size; ++i){
+		flit_array[i].valid = false;
+	}
+	in_latch.valid = false;
     head_ptr = 0;
     tail_ptr = 0;
     usedw = 0;
@@ -38,4 +44,8 @@ void fifo::produce(){
         usedw = tail_ptr - head_ptr + size;
     }
     in_avail = usedw < (size - 1); 
+}
+
+void fifo::fifo_free(){
+	free(flit_array);
 }

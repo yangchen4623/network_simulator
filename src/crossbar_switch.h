@@ -7,7 +7,7 @@
 
 class crossbar_switch{
 public:
-   int N_fan_in = N_FAN_IN;
+   int N_fan_in;
    int N_fan_out = PORT_NUM;
    int mode;
    flit* flit_in[N_FAN_IN];
@@ -29,7 +29,7 @@ public:
    void consume();
    void produce();
    bool lookup_in_avail(int port_id, int our_dir);
-   void free();
+   void crossbar_switch_free();
 };
 
 

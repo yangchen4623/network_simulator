@@ -2,8 +2,8 @@
 #define LOCAL_UNIT_H
 #include "flit.h"
 class local_unit{
-
-    int cycle_counter = 0;
+public:
+    int cycle_counter;
     flit inject[PORT_NUM];
     bool* inject_avail[PORT_NUM];
     flit* eject[PORT_NUM];
@@ -21,23 +21,23 @@ class local_unit{
     int packet_size;
     int packet_num;
     
-    int inject_pckt_counter[i];
-    int inject_flit_counter[i];
-    int inject_control_counter[i];
+    int inject_pckt_counter[PORT_NUM];
+    int inject_flit_counter[PORT_NUM];
+    int inject_control_counter[PORT_NUM];
 
-    int eject_pckt_counter[i];
-    int eject_flit_counter[i];
-    int cur_eject_src_x[i];
-    int cur_eject_src_y[i];
-    int cur_eject_src_z[i];
-    int cur_eject_pckt_id[i];
+	int eject_pckt_counter[PORT_NUM];
+	int eject_flit_counter[PORT_NUM];
+	int cur_eject_src_x[PORT_NUM];
+	int cur_eject_src_y[PORT_NUM];
+	int cur_eject_src_z[PORT_NUM];
+	int cur_eject_pckt_id[PORT_NUM];
 
-    int eject_state[i];
+	int eject_state[PORT_NUM];
 
     bool all_pckt_rcvd = false;
 
 
-    void local_unit_init(int Mode, int Injection_gap, int Packet_size, int Packet_num, flit** Eject, bool** Inject_avail);
+	void local_unit_init(int Cur_x, int Cur_y, int Cur_z, int Mode, int Injection_gap, int Packet_size, int Packet_num, flit** Eject, bool** Inject_avail);
     void produce();
     void consume();
 

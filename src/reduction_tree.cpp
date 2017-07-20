@@ -1,31 +1,34 @@
 #include "reduction_tree.h"
 #include "N_to_1_reductor.h"
-reduction::reduction_tree_init(int N_Fan_in, int Out_dir, int Level_num, int Mode, int L1_N, int L2_N, int L3_N, flit** In_list, bool* Out_avail){
+#include "flit.h"
+#include <stdlib.h>
+#include <stdio.h>
+void reduction_tree::reduction_tree_init(int N_Fan_in, int Out_dir, int Level_num, int Mode, int L1_N, int L2_N, int L3_N, flit** In_list, bool* Out_avail){
     N_fan_in = N_Fan_in;
-    out_dir = Out_dir;
+	out_dir = Out_dir;
     level_num = Level_num;
     mode = Mode;
     l1_N = L1_N;
     l2_N = L2_N;
     l3_N = L3_N;
-    l4_N = L4_N;
+    l4_N = 1;
     if(!(flit_in = (flit**)malloc(N_fan_in * sizeof(flit*)))){
-        printf("No mem space for %d slots for flit** flit_in in reductor in %d dir, %d level, %d id\n", N_fan_in, out_dir, level, id);
+		printf("No mem space for %d slots for flit** flit_in in reductor tree in %d dir\n", N_fan_in, out_dir);
         exit(-1);
     }
     
     if(!(in_latch = (flit*)malloc(N_fan_in * sizeof(flit)))){
-        printf("No mem space for %d slots for flit* in_latch in reductor in %d dir, %d level, %d id\n", N_fan_in, out_dir, level, id);
+        printf("No mem space for %d slots for flit* in_latch in reductor in %d dir\n", N_fan_in, out_dir);
         exit(-1);
     }   
 
     if(!(in_avail = (bool*)malloc(N_fan_in * sizeof(bool)))){
-        printf("No mem space for %d slots for bool* in_avail in reductor in %d dir, %d level, %d id\n", N_fan_in, out_dir, level, id);
+        printf("No mem space for %d slots for bool* in_avail in reductor in %d dir\n", N_fan_in, out_dir);
         exit(-1);
     }
     
     if(!(in_slot = (flit*)malloc(N_fan_in * sizeof(flit)))){
-        printf("No mem space for %d slots for N_fan_in* in_slot in reductor in %d dir, %d level, %d id\n", N_fan_in, out_dir, level, id);
+        printf("No mem space for %d slots for N_fan_in* in_slot in reductor in %d dir\n", N_fan_in, out_dir);
         exit(-1);
     }
 
@@ -37,6 +40,7 @@ reduction::reduction_tree_init(int N_Fan_in, int Out_dir, int Level_num, int Mod
     }
     out_avail_latch = true;
     out_avail = Out_avail;
+	out.valid = false;
 
     //then init all the reductors in l1 and l2 and l3
     if(!(l1_reductors = (N_to_1_reductor*)malloc(l1_N * sizeof(N_to_1_reductor)))){
@@ -58,17 +62,10 @@ reduction::reduction_tree_init(int N_Fan_in, int Out_dir, int Level_num, int Mod
     int l3_W = l2_N / l3_N;
     int l4_W = l3_N;
     
-    flit** flit_to_l1;
-    flit** flit_l1_to_l2;
-    bool** in_avail_l2_to_l1;
-    flit** flit_l2_to_l3;
-    bool** in_avail_l3_to_l2;
-    flit** flit_l3_to_l4;
-    bool** in_avail_l4_to_l3;
-    bool* out_avail_to_l4;
+
 
     for(int i = 0; i < l1_N; ++i){
-        l1_reductors[i].alloc(l1_W)；
+		l1_reductors[i].alloc(l1_W);
     }
     for(int i = 0; i < l2_N; ++i){
         l2_reductors[i].alloc(l2_W);
@@ -99,17 +96,17 @@ reduction::reduction_tree_init(int N_Fan_in, int Out_dir, int Level_num, int Mod
     }
 
     if(!(in_avail_l2_to_l1 = (bool**)malloc(l1_N * sizeof(bool*)))){
-        printf("No mem space for %d pointers for l2 to l1 in_avail\n", l1_N)
+		printf("No mem space for %d pointers for l2 to l1 in_avail\n", l1_N);
         exit(-1);
     }
  
     if(!(in_avail_l3_to_l2 = (bool**)malloc(l2_N * sizeof(bool*)))){
-        printf("No mem space for %d pointers for l3 to l2 in_avail\n", l2_N)
+		printf("No mem space for %d pointers for l3 to l2 in_avail\n", l2_N);
         exit(-1);
     }
  
     if(!(in_avail_l4_to_l3 = (bool**)malloc(l3_N * sizeof(bool*)))){
-        printf("No mem space for %d pointers for l3 to l2 in_avail\n", l3_N)
+		printf("No mem space for %d pointers for l3 to l2 in_avail\n", l3_N);
         exit(-1);
     }
 
@@ -124,11 +121,11 @@ reduction::reduction_tree_init(int N_Fan_in, int Out_dir, int Level_num, int Mod
 
     for(int i = 0; i < l1_N; ++i){
         flit_l1_to_l2[i] = &(l1_reductors[i].out);
-        in_avail_l2_to_l1[i] = &(l2_reductors[i / l2_N].in_avail[i % l2_N]);
+        in_avail_l2_to_l1[i] = &(l2_reductors[i / l2_W].in_avail[i % l2_W]);
     }
     for(int i = 0; i < l2_N; ++i){
         flit_l2_to_l3[i] = &(l2_reductors[i].out);
-        in_avail_l3_to_l2[i] = &(l3_reductors[i / l3_N].in_avail[i % l3_N]);
+        in_avail_l3_to_l2[i] = &(l3_reductors[i / l3_W].in_avail[i % l3_W]);
     }
     for(int i = 0; i < l3_N; ++i){
         flit_l3_to_l4[i] = &(l3_reductors[i].out);
@@ -138,16 +135,16 @@ reduction::reduction_tree_init(int N_Fan_in, int Out_dir, int Level_num, int Mod
     out_avail_to_l4 = &out_avail_latch; 
     
     for(int i = 0; i < l1_N; ++i){
-        l1_reductors[i].init(l1_W, out_dir, 1, i, mode, &(flit_to_l1[i * l1_W]), in_avail_l2_to_l1[i]);
+        l1_reductors[i].N_to_1_reductor_init(out_dir, 1, i, mode, &(flit_to_l1[i * l1_W]), in_avail_l2_to_l1[i]);
     }
     for(int i = 0; i < l2_N; ++i){
-        l2_reductors[i].init(l2_W, out_dir, 1, i, mode, &(flit_l1_to_l2[i * l2_W]), in_avail_l3_to_l2[i]);
+		l2_reductors[i].N_to_1_reductor_init(out_dir, 2, i, mode, &(flit_l1_to_l2[i * l2_W]), in_avail_l3_to_l2[i]);
     }
     for(int i = 0; i < l3_N; ++i){
-        l3_reductors[i].init(l3_W, out_dir, 1, i, mode, &(flit_l2_to_l3[i * l3_W]), in_avail_l4_to_l3[i]);
+		l3_reductors[i].N_to_1_reductor_init(out_dir, 3, i, mode, &(flit_l2_to_l3[i * l3_W]), in_avail_l4_to_l3[i]);
     }   
 
-    l4_reductor.init(l4_W, out_dir, 1, i, mode, flit_l3_to_l4, out_avail_to_l4);
+	l4_reductor.N_to_1_reductor_init(out_dir, 4, 0, mode, flit_l3_to_l4, out_avail_to_l4);
 
 }
 
@@ -187,24 +184,22 @@ void reduction_tree::produce(){
     l4_reductor.produce();
 
     //update in_avail and out
-    for(int i = 0; i < l1_N; ++i){
-        in_avail[i] = l1_reductor[i].in_avail;
+    for(int i = 0; i < N_fan_in; ++i){
+        in_avail[i] = l1_reductors[N_fan_in / l1_W].in_avail[N_fan_in % l1_W];
     }
     out = l4_reductor.out;
 }
-
-void reduction_tree::free(){
-    //free all the subentities
-    for(int i = 0; i < l1_N; ++i){
-        l1_reductors[i].free();
+void reduction_tree::reduction_tree_free(){
+	for(int i = 0; i < l1_N; ++i){
+        l1_reductors[i].N_to_1_reductor_free();
     }
     for(int i = 0; i < l2_N; ++i){
-        l2_reductors[i].free();
+		l2_reductors[i].N_to_1_reductor_free();
     }
     for(int i = 0; i < l3_N; ++i){
-        l3_reductors[i].free();
+		l3_reductors[i].N_to_1_reductor_free();
     }
-    l4_reductor.free();
+	l4_reductor.N_to_1_reductor_free();
     free(l1_reductors);
     free(l2_reductors);
     free(l3_reductors);

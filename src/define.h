@@ -34,7 +34,7 @@ tail flit
 #define HEADER_LEN 3
 #define ROUTE_LEN  3
 #define HEAD_FLIT 0
-#define BODY_FLIT 3
+#define BODY_FLIT 1
 #define TAIL_FLIT 2
 #define SINGLE_FLIT 3
 #define CREDIT_FLIT 4
@@ -63,7 +63,7 @@ tail flit
 #define VC_IDLE 0
 #define VC_WAITING_FOR_OVC 1
 #define VC_ACTIVE 2
-#define VC_WAITING_FOR_CREDITES 3
+#define VC_WAITING_FOR_CREDITS 3
 
 #define SA_FARTHEST_FIRST 0
 #define SA_OLDEST_FIRST 1
