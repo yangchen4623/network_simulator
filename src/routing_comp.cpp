@@ -153,6 +153,7 @@ void routing_comp::produce(){
         return;
     }
 //not eject_enable, the traffic is bypass
+	flit_eject.valid = false;
     if(out_avail){
         flit_after_RC = in_latch;
         if(in_latch.valid && (in_latch.flit_type == HEAD_FLIT || in_latch.flit_type == SINGLE_FLIT)){

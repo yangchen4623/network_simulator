@@ -169,13 +169,13 @@ void network::network_init(int x, int y, int z){
 
 				link_list_zpos[i][j][k].link_init(LINKDELAY, DIR_ZPOS, &(node_list[i][j][k].out_zpos), &node_list[i][j][k], &node_list[(i + 1 == size_z) ? 0 : (i + 1)][j][k]);
 
-				link_list_xneg[i][j][k].link_init(LINKDELAY, DIR_XNEG, &(node_list[i][j][k].out_xneg), &node_list[i][j][k], &node_list[i][j][(k == 0) ? (size_x - 1) : k]);
+				link_list_xneg[i][j][k].link_init(LINKDELAY, DIR_XNEG, &(node_list[i][j][k].out_xneg), &node_list[i][j][k], &node_list[i][j][(k == 0) ? (size_x - 1) : (k - 1)]);
  
-				link_list_yneg[i][j][k].link_init(LINKDELAY, DIR_YNEG, &(node_list[i][j][k].out_yneg), &node_list[i][j][k], &node_list[i][(j == 0) ? (size_y - 1) : j][k]);
+				link_list_yneg[i][j][k].link_init(LINKDELAY, DIR_YNEG, &(node_list[i][j][k].out_yneg), &node_list[i][j][k], &node_list[i][(j == 0) ? (size_y - 1) : (j - 1)][k]);
 
-				link_list_zneg[i][j][k].link_init(LINKDELAY, DIR_ZNEG, &(node_list[i][j][k].out_zneg), &node_list[i][j][k], &node_list[(i == 0) ? (size_z - 1) : 0][j][k]);
+				link_list_zneg[i][j][k].link_init(LINKDELAY, DIR_ZNEG, &(node_list[i][j][k].out_zneg), &node_list[i][j][k], &node_list[(i == 0) ? (size_z - 1) : (i - 1)][j][k]);
                 
-				node_list[i][j][k].node_init(k, j, i, &(link_list_xneg[i][j][(k + 1 == size_x) ? 0 : (k + 1)].out), &(link_list_yneg[i][(j + 1 == size_y) ? 0 : (j + 1)][k].out), &(link_list_zneg[(i + 1 == size_z) ? 0 : (i + 1)][j][k].out), &(link_list_xpos[i][j][(k == 0) ? (size_x - 1) : k].out), &(link_list_ypos[i][(j == 0) ? (size_y - 1) : j][k].out), &(link_list_zpos[(i == 0) ? (size_z - 1) : 0][j][k].out));
+				node_list[i][j][k].node_init(k, j, i, &(link_list_xneg[i][j][(k + 1 == size_x) ? 0 : (k + 1)].out), &(link_list_yneg[i][(j + 1 == size_y) ? 0 : (j + 1)][k].out), &(link_list_zneg[(i + 1 == size_z) ? 0 : (i + 1)][j][k].out), &(link_list_xpos[i][j][(k == 0) ? (size_x - 1) : (k - 1)].out), &(link_list_ypos[i][(j == 0) ? (size_y - 1) : (j - 1)][k].out), &(link_list_zpos[(i == 0) ? (size_z - 1) : (i - 1)][j][k].out));
 
             }
         }

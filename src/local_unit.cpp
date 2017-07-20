@@ -139,52 +139,79 @@ void local_unit::produce(){
     for(int i = 0; i < PORT_NUM; ++i){
         if(inject_avail_latch[i]){
             if(inject_pckt_counter[i] < global_injection_packet_size[i][cur_z][cur_y][cur_x]){
-				inject_control_counter[i] = (inject_control_counter[i] <= injection_gap + packet_size - 1) ? inject_control_counter[i] + 1 : 0;
+				
                 if(inject_control_counter[i] <= packet_size - 1){ 
                     if(packet_size == 1){
-
+						pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].sent = true;
+						pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].rcvd = false;
+						pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].send_time_stamp = cycle_counter;
                         inject[i].flit_type = SINGLE_FLIT;
                         inject[i].flit_id = 0;
+						inject[i].packet_id = inject_pckt_counter[i];
+						inject[i].dst_z = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].dst_z;
+						inject[i].dst_y = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].dst_y;
+						inject[i].dst_x = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].dst_x;
+						inject[i].priority_dist = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].mahattan_dist;
+						inject[i].payload = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].payload;
                         inject_pckt_counter[i]++;
         
                     }
                     else{
+						pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].sent = true;
+						pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].rcvd = false;
+						
                         if(inject_control_counter[i] == 0){
                             inject[i].flit_type = HEAD_FLIT;
                             inject[i].flit_id = 0;
+							inject[i].packet_id = inject_pckt_counter[i];
+							inject[i].dst_z = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].dst_z;
+							inject[i].dst_y = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].dst_y;
+							inject[i].dst_x = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].dst_x;
+							inject[i].priority_dist = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].mahattan_dist;
+							inject[i].payload = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].payload;
+							pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].send_time_stamp = cycle_counter;
                         }
                         else if(inject_control_counter[i] > 0 && inject_control_counter[i] < packet_size - 1){
                             inject[i].flit_type = BODY_FLIT;
                             inject[i].flit_id = inject_control_counter[i];
+							inject[i].packet_id = inject_pckt_counter[i];
+							inject[i].dst_z = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].dst_z;
+							inject[i].dst_y = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].dst_y;
+							inject[i].dst_x = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].dst_x;
+							inject[i].priority_dist = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].mahattan_dist;
+							inject[i].payload = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].payload;
                         }
                         else if(inject_control_counter[i] == packet_size - 1){
                             inject[i].flit_type = TAIL_FLIT;
-                            inject[i].flit_id = inject_control_counter[i];                                    
-                            inject_pckt_counter[i]++;
+                            inject[i].flit_id = inject_control_counter[i];      
+							inject[i].packet_id = inject_pckt_counter[i];
+							inject[i].dst_z = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].dst_z;
+							inject[i].dst_y = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].dst_y;
+							inject[i].dst_x = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].dst_x;
+							inject[i].priority_dist = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].mahattan_dist;
+							inject[i].payload = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].payload;
+							inject_pckt_counter[i]++;
 
                         }
 
                     }
                     inject[i].valid = true;
                     inject[i].VC_class = (i >= 3);
-                    inject[i].dst_z = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].dst_z;
-                    inject[i].dst_y = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].dst_y;
-                    inject[i].dst_x = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].dst_x;
+                    
                     inject[i].inject_dir = i + 1;
                     inject[i].dir_out = i + 1;
-                    inject[i].priority_dist = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].mahattan_dist;
+                   
                     inject[i].priority_age = cycle_counter;
-                    inject[i].packet_id = inject_pckt_counter[i];
+
                     inject[i].src_x = cur_x;
                     inject[i].src_y = cur_y;
                     inject[i].src_z = cur_z;
-                    inject[i].payload = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].payload;
+                    
                     //inject[i].packet_size = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].packet_size;
 
                 //log the injected packet
-                    pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].sent = true;
-                    pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].rcvd = false;
-                    pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].send_time_stamp = cycle_counter;
+                    
+
                 }
                 else{
                     inject[i].valid = false;
@@ -194,6 +221,7 @@ void local_unit::produce(){
 			else{
 				inject[i].valid = false;
 			}
+			inject_control_counter[i] = (inject_control_counter[i] <= injection_gap + packet_size - 1) ? inject_control_counter[i] + 1 : 0;
         }
     }
 

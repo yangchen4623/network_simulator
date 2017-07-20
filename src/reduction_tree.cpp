@@ -185,7 +185,7 @@ void reduction_tree::produce(){
 
     //update in_avail and out
     for(int i = 0; i < N_fan_in; ++i){
-        in_avail[i] = l1_reductors[N_fan_in / l1_W].in_avail[N_fan_in % l1_W];
+        in_avail[i] = l1_reductors[i / l1_W].in_avail[i % l1_W];
     }
     out = l4_reductor.out;
 }
@@ -211,7 +211,7 @@ void reduction_tree::reduction_tree_free(){
     free(in_avail_l2_to_l1);
     free(in_avail_l3_to_l2);
     free(in_avail_l4_to_l3);
-    free(out_avail_to_l4);
+ //   free(out_avail_to_l4);
     
     free(flit_in);
     free(in_latch);
