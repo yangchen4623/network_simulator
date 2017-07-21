@@ -12,12 +12,12 @@ public:
    int mode;
    flit* flit_in[N_FAN_IN];
    int level_num = 4;
-   flit in_latch[PORT_NUM][N_FAN_IN];
+   flit in_latch[N_FAN_IN];
    bool in_avail[PORT_NUM][N_FAN_IN];
    bool out_avail_latch[PORT_NUM];
    bool* out_avail[PORT_NUM];
 
-   flit* in_list_to_tree[PORT_NUM][N_FAN_IN];//pointers passed to all the reduction tree
+   flit* in_list_to_tree[N_FAN_IN];//pointers passed to all the reduction tree
    bool* out_avail_to_tree[PORT_NUM];
 
    flit out[PORT_NUM];

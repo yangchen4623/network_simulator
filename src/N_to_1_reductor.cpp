@@ -102,7 +102,10 @@ void N_to_1_reductor::produce(){
     }
     //then produce out 
     out = in_slot[selector];
-
+	if (out.valid && (out.flit_type == HEAD_FLIT || out.flit_type == BODY_FLIT))
+		occupy = true;
+	else if (out.valid && out.flit_type == TAIL_FLIT)
+		occupy = false;
     return;
 }
 

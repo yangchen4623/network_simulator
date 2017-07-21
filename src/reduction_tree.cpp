@@ -57,10 +57,10 @@ void reduction_tree::reduction_tree_init(int N_Fan_in, int Out_dir, int Level_nu
     }
     
     //then call init functions of all the reductors
-    int l1_W = N_fan_in / l1_N;
-    int l2_W = l1_N / l2_N;
-    int l3_W = l2_N / l3_N;
-    int l4_W = l3_N;
+    l1_W = N_fan_in / l1_N;
+    l2_W = l1_N / l2_N;
+    l3_W = l2_N / l3_N;
+    l4_W = l3_N;
     
 
 
@@ -153,7 +153,10 @@ void reduction_tree::consume(){
     out_avail_latch = *out_avail;
     //latch the flit_in
     for(int i = 0; i < N_fan_in; ++i){
-        in_latch[i] = *(flit_in[i]);
+		if (flit_in[i]->valid && flit_in[i]->dir_out == out_dir)
+			in_latch[i] = *(flit_in[i]);
+		else
+			in_latch[i].valid = false;
     }
 
     //call all the subentities consume

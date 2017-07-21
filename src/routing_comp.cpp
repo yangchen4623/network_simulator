@@ -156,7 +156,7 @@ void routing_comp::produce(){
 	flit_eject.valid = false;
     if(out_avail){
         flit_after_RC = in_latch;
-        if(in_latch.valid && (in_latch.flit_type == HEAD_FLIT || in_latch.flit_type == SINGLE_FLIT)){
+        if(in_latch.valid){
             flit_after_RC.dir_out = dir;
             flit_after_RC.VC_class = new_VC_class;
             flit_after_RC.priority_dist = flit_after_RC.priority_dist - 1;

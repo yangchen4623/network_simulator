@@ -3,6 +3,7 @@
 #include "flit.h"
 #include "math.h"
 #include "crossbar_switch.h"
+#include <stdio.h>
 void VCs::VCs_init(int Dir, flit* In, crossbar_switch* Sw){
     dir = Dir;
     in = In;
@@ -65,7 +66,17 @@ void VCs::consume(){
 
     //latch the out avail 
     for(int i = 0; i < VC_NUM; ++i){
-        out_avail_latch[i] = sw->lookup_in_avail((dir - 1) * VC_NUM + i, dir);
+		if (VC_array[i].out.valid) {
+//			if (!(sw->lookup_in_avail((dir - 1) * VC_NUM + i, VC_array[i].out.dir_out))) {
+//				printf("mark\n");
+//			}
+			out_avail_latch[i] = sw->lookup_in_avail((dir - 1) * VC_NUM + i, VC_array[i].out.dir_out);
+//			if (out_avail_latch[i] == false) {
+//				printf("test\n");
+//			}
+		}
+		else
+			out_avail_latch[i] = true;
     }
 
     //then call all the VC consume() function

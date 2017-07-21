@@ -8,9 +8,11 @@ void crossbar_switch::crossbar_switch_init(int Mode, flit** In_list, bool** Out_
 	N_fan_in = N_FAN_IN;
 	N_fan_out = PORT_NUM;
     mode = Mode;
+	for(int j = 0; j < N_FAN_IN; ++j)
+		in_latch[j].valid = false;
+
     for(int i = 0; i < PORT_NUM; ++i){
         for(int j = 0; j < N_FAN_IN; ++j){
-            in_latch[i][j].valid = false;
             in_avail[i][j] = true;
         }
         out[i].valid = false;
@@ -23,11 +25,11 @@ void crossbar_switch::crossbar_switch_init(int Mode, flit** In_list, bool** Out_
         out_avail[i] = Out_avail[i];
     }
 
-    for(int i = 0; i < PORT_NUM; ++i){
+
         for(int j = 0; j < N_FAN_IN; ++j){
-            in_list_to_tree[i][j] = &in_latch[i][j];        
+            in_list_to_tree[j] = &in_latch[j];        
         }
-    }
+  
     for(int i = 0; i < PORT_NUM; ++i){
         out_avail_to_tree[i] = &out_avail_latch[i];
     }
@@ -35,7 +37,7 @@ void crossbar_switch::crossbar_switch_init(int Mode, flit** In_list, bool** Out_
 
 
     for(int i = 0; i < PORT_NUM; ++i){
-        tree_list[i].reduction_tree_init(N_fan_in, i + 1, 4, mode, 18, 6, 2, in_list_to_tree[i], out_avail_to_tree[i]);
+        tree_list[i].reduction_tree_init(N_fan_in, i + 1, 4, mode, 18, 6, 2, in_list_to_tree, out_avail_to_tree[i]);
     }
     
 
@@ -43,13 +45,10 @@ void crossbar_switch::crossbar_switch_init(int Mode, flit** In_list, bool** Out_
 
 void crossbar_switch::consume(){
     //latch all the in data
-    for(int i = 0; i < PORT_NUM; ++i){
-        for(int j = 0; j < N_FAN_IN; ++j){
-            if(flit_in[j]->valid && flit_in[j]->dir_out == i + 1){
-                in_latch[i][j] = *(flit_in[j]);
-            }
-        }
-    }
+	for(int i = 0; i < N_FAN_IN; ++i)
+		in_latch[i] = *(flit_in[i]);
+
+
     //latch all the out_avail
     for(int i = 0; i < PORT_NUM; ++i){
         out_avail_latch[i] = *(out_avail[i]);
