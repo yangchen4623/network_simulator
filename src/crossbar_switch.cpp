@@ -78,7 +78,7 @@ void crossbar_switch::produce(){
 
 bool crossbar_switch::lookup_in_avail(int port_id, int out_dir){
     if(out_dir > 6 || out_dir < 1){
-        printf("dir is wrong\n");
+        printf("dir %d is wrong, port_id is %d\n", out_dir, port_id);
         exit(-1);
     }
     if(port_id >= N_FAN_IN || port_id < 0){

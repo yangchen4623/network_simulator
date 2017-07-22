@@ -92,15 +92,6 @@ void router::consume(){
 
     xbar.consume();  
 
-    //update occupy_by_inject
-    for(int i = 0; i < PORT_NUM; ++i){
-        if(inject_latch[i].valid && (!xbar.out[i].valid) && inject_latch[i].flit_type == HEAD_FLIT){
-            occupy_by_inject[i] = true;
-        }
-        else if(inject_latch[i].valid && inject_latch[i].flit_type == TAIL_FLIT){
-            occupy_by_inject[i] = false;
-        }
-    }
 
 
 }
@@ -131,11 +122,22 @@ void router::produce(){
     for(int i = 0; i < PORT_NUM; ++i){
         if(credit_period_counter != CREDIT_BACK_PERIOD - 1){
 			if (downstream_credits[i] >= CREDIT_THRESHOlD){
-				if (occupy_by_inject[i] || (xbar.out[i].valid == false)){
+				if (occupy_by_inject[i]){
                     out_avail_for_inject[i] = true;
+					out_avail_for_passthru[i] = false;
                 }
-                if(!occupy_by_inject[i])
-                    out_avail_for_passthru[i] = true;
+				else if (xbar.out[i].valid){
+					out_avail_for_inject[i] = false;
+					out_avail_for_passthru[i] = true;
+				}
+				else{
+					out_avail_for_inject[i] = true;
+					out_avail_for_passthru[i] = true;
+				}
+//				if (!occupy_by_inject[i]){
+//					out_avail_for_passthru[i] = true;
+//					out_avail_for_inject[i] = false;
+//				}
             }
             else{
                 out_avail_for_passthru[i] = false;
@@ -152,7 +154,7 @@ void router::produce(){
 
     //update the out
     for(int i = 0; i < PORT_NUM; ++i){
-        upstream_credits[i] = input_buffer_list[i].usedw;
+        upstream_credits[i] = IN_Q_SIZE - 1 - input_buffer_list[i].usedw;
         if(credit_period_counter == CREDIT_BACK_PERIOD - 1){
             out[i].valid = true;
             out[i].flit_type = CREDIT_FLIT;
@@ -169,6 +171,16 @@ void router::produce(){
 	for (int i = 0; i < PORT_NUM; ++i){
 		eject[i] = RC_list[i].flit_eject;
 	}
+	//update occupy_by_inject
+	for (int i = 0; i < PORT_NUM; ++i){
+		if (inject_latch[i].valid && (!xbar.out[i].valid) && inject_latch[i].flit_type == HEAD_FLIT){
+			occupy_by_inject[i] = true;
+		}
+		else if (inject_latch[i].valid && inject_latch[i].flit_type == TAIL_FLIT){
+			occupy_by_inject[i] = false;
+		}
+	}
+
 
 
 
