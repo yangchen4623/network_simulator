@@ -47,8 +47,9 @@ void node::consume(){
     internal_router.consume();
 }
 void node::produce(){
-    app_core.produce();
 	internal_router.produce();
+    app_core.produce();
+
 	out_xpos = internal_router.out[0]; 
 	out_ypos = internal_router.out[1];
 	out_zpos = internal_router.out[2];

@@ -9,8 +9,9 @@ public:
     flit* eject[PORT_NUM];
     
     bool inject_avail_latch[PORT_NUM];
+	bool inject_avail_post_latch[PORT_NUM];
     flit eject_latch[PORT_NUM];
-
+	int credit_period_counter;
 
     int cur_x;
     int cur_y;

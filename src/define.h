@@ -21,7 +21,7 @@
 #define DIR_YNEG 5
 #define DIR_ZNEG 6
 #define DIR_EJECT 7
-#define LINKDELAY 50 
+#define LINKDELAY 6
 /* packet format
 * head flit
 |FLIT type (3 bits)| VC class (1 bit) | dst z (3 bits) | dst y (3 bits) | dst x (3 bits) | priority field (4 bits) | src z (3 bits)| src y (3 bits)| src x (3 bits)| packet id (16 bits)| payload (66 bits)|

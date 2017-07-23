@@ -54,6 +54,7 @@ void router::router_init(int Cur_x, int Cur_y, int Cur_z, int SA_Mode, int Routi
     //init all avails
     for(int i = 0; i < PORT_NUM; ++i){
         occupy_by_inject[i] = false;
+		occupy_by_passthru[i] = false;
         downstream_avail[i] = true;
         out_avail_for_passthru[i] = true;
         out_avail_for_inject[i] = true;
@@ -126,7 +127,7 @@ void router::produce(){
                     out_avail_for_inject[i] = true;
 					out_avail_for_passthru[i] = false;
                 }
-				else if (xbar.out[i].valid){
+				else if (xbar.out[i].valid || occupy_by_passthru[i]){
 					out_avail_for_inject[i] = false;
 					out_avail_for_passthru[i] = true;
 				}
@@ -160,26 +161,37 @@ void router::produce(){
             out[i].flit_type = CREDIT_FLIT;
             out[i].payload = upstream_credits[i];
         }
-        else if(xbar.out[i].valid && (!(occupy_by_inject[i]))){
-            out[i] = xbar.out[i];
-        }
-        else
-            out[i] = inject_latch[i];
+		else if (xbar.out[i].valid && (!(occupy_by_inject[i]))){
+			out[i] = xbar.out[i];
+		}
+//		else if ((!xbar.out[i].valid) && (!(occupy_by_inject[i])))
+//			out[i].valid = false;
+		else 
+			out[i] = inject_latch[i];
+
     }
 
 	//update the eject
 	for (int i = 0; i < PORT_NUM; ++i){
 		eject[i] = RC_list[i].flit_eject;
 	}
+	//update occupy_by_passthru
+	for (int i = 0; i < PORT_NUM; ++i){
+		if (xbar.out[i].valid && xbar.out[i].flit_type == HEAD_FLIT)
+			occupy_by_passthru[i] = true;
+		else if (xbar.out[i].valid && xbar.out[i].flit_type == TAIL_FLIT && credit_period_counter != CREDIT_BACK_PERIOD - 1)
+			occupy_by_passthru[i] = false;
+	}
 	//update occupy_by_inject
 	for (int i = 0; i < PORT_NUM; ++i){
-		if (inject_latch[i].valid && (!xbar.out[i].valid) && inject_latch[i].flit_type == HEAD_FLIT){
+		if (inject_latch[i].valid && (!occupy_by_passthru[i]) && inject_latch[i].flit_type == HEAD_FLIT){
 			occupy_by_inject[i] = true;
 		}
 		else if (inject_latch[i].valid && inject_latch[i].flit_type == TAIL_FLIT){
 			occupy_by_inject[i] = false;
 		}
 	}
+
 
 
 
