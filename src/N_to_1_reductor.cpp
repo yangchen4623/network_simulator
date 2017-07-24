@@ -99,7 +99,7 @@ void N_to_1_reductor::produce(){
 		in_slot[i] = in_Q_inst[i].out;
 	}
 
-	int max = 0;
+	int max = -1;
 	//then decide who goes first
 	if (!occupy){
 		for (int i = 0; i < N_fan_in; ++i){
@@ -110,6 +110,10 @@ void N_to_1_reductor::produce(){
 			else{
 				cur_priority = in_slot[i].priority_age;
 			}//needs more code to implement mixed priority
+			if (in_slot[i].valid && cur_priority < 0){
+				printf("error!, neg priority\n");
+				exit(-1);
+			}
 
 			if (in_slot[i].valid && (in_slot[i].flit_type == HEAD_FLIT || in_slot[i].flit_type == SINGLE_FLIT) && cur_priority > max){
 				selector = i;
