@@ -36,7 +36,7 @@ public:
     int SA_mode = SA_FARTHEST_FIRST;
 
     router internal_router;
-    local_unit app_core;
+ //   local_unit app_core;
 
     void node_init(int Cur_x, int Cur_y, int Cur_z, flit* In_xpos, flit* In_ypos, flit* In_zpos, flit* In_xneg, flit* In_yneg, flit* In_zneg);
     void consume();

@@ -4,7 +4,7 @@
 #define FLIT_SIZE 128
 #define PHIT_SIZE 256
 #define IN_Q_SIZE 512
-#define VC_SIZE 16
+#define VC_SIZE 32 // has to bigger than PACKET_SIZE
 #define VC_NUM 9
 #define XSIZE 4
 #define YSIZE 4
@@ -21,7 +21,7 @@
 #define DIR_YNEG 5
 #define DIR_ZNEG 6
 #define DIR_EJECT 7
-#define LINKDELAY 6
+#define LINKDELAY 50
 /* packet format
 * head flit
 |FLIT type (3 bits)| VC class (1 bit) | dst z (3 bits) | dst y (3 bits) | dst x (3 bits) | priority field (4 bits) | src z (3 bits)| src y (3 bits)| src x (3 bits)| packet id (16 bits)| payload (66 bits)|
@@ -74,8 +74,8 @@ tail flit
 #define CREDIT_THRESHOlD 160
 
 #define INJECTION_NEAREST_NEIGHBOR 1
-#define INJECTION_GAP 1
-#define PACKET_NUM 10
+#define INJECTION_GAP 0
+#define PACKET_NUM 20
 #define PACKET_SIZE 10
 
 #define EJECT_IDLE 0

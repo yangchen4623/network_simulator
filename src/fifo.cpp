@@ -28,11 +28,11 @@ void fifo::consume(){
 void fifo::produce(){
     if(in_avail && in_latch.valid){
         flit_array[tail_ptr] = in_latch;
-        tail_ptr = tail_ptr < size ? tail_ptr + 1 : 0;
+        tail_ptr = tail_ptr < size - 1 ? tail_ptr + 1 : 0;
     }
     if(out_avail_latch && out.valid){
         flit_array[head_ptr].valid = false;
-        head_ptr = head_ptr < size ? head_ptr + 1 : 0;
+        head_ptr = head_ptr < size - 1 ? head_ptr + 1 : 0;
     }
 
     out = flit_array[head_ptr];

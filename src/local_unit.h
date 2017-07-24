@@ -23,6 +23,7 @@ public:
     int packet_num;
     
     int inject_pckt_counter[PORT_NUM];
+	int next_inject_pckt_counter[PORT_NUM];
     int inject_flit_counter[PORT_NUM];
     int inject_control_counter[PORT_NUM];
 

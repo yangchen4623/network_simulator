@@ -71,11 +71,11 @@ void local_unit::consume(){
             }
             else if(eject_latch[i].flit_type == BODY_FLIT){
                 if(eject_state[i] != EJECT_RECVING){
-                    printf("error in local unit (%d,%d,%d): unexpected body flit from (%d,%d,%d), whose dst is (%d,%d,%d), flit id is %d, packet id is %d\n", cur_x, cur_y, cur_z, eject_latch[i].src_x, eject_latch[i].src_y, eject_latch[i].src_z, eject_latch[i].dst_x, eject_latch[i].dst_y, eject_latch[i].dst_z, eject_latch[i].flit_id, eject_latch[i].packet_id);
+                    printf("ejecting from dir: %d, error in local unit (%d,%d,%d): unexpected body flit from (%d,%d,%d), whose dst is (%d,%d,%d), flit id is %d, packet id is %d\n", i, cur_x, cur_y, cur_z, eject_latch[i].src_x, eject_latch[i].src_y, eject_latch[i].src_z, eject_latch[i].dst_x, eject_latch[i].dst_y, eject_latch[i].dst_z, eject_latch[i].flit_id, eject_latch[i].packet_id);
                     exit(-1);
                 }
                 if(eject_latch[i].dst_x != cur_x || eject_latch[i].dst_y != cur_y || eject_latch[i].dst_z != cur_z){
-                    printf("error in local unit (%d,%d,%d): body flit arrives wrong dst: from (%d,%d,%d), whose dst is (%d,%d,%d), flit id is %d, packet id is %d\n", cur_x, cur_y, cur_z, eject_latch[i].src_x, eject_latch[i].src_y, eject_latch[i].src_z, eject_latch[i].dst_x, eject_latch[i].dst_y, eject_latch[i].dst_z, eject_latch[i].flit_id, eject_latch[i].packet_id);
+                    printf("ejecting from dir: %d, error in local unit (%d,%d,%d): body flit arrives wrong dst: from (%d,%d,%d), whose dst is (%d,%d,%d), flit id is %d, packet id is %d, whose age is %d\n", i, cur_x, cur_y, cur_z, eject_latch[i].src_x, eject_latch[i].src_y, eject_latch[i].src_z, eject_latch[i].dst_x, eject_latch[i].dst_y, eject_latch[i].dst_z, eject_latch[i].flit_id, eject_latch[i].packet_id, eject_latch[i].priority_age);
                     exit(-1);
                 }
                 if(eject_latch[i].src_x != cur_eject_src_x[i] || eject_latch[i].src_y != cur_eject_src_y[i] || eject_latch[i].src_z != cur_eject_src_z[i]){
@@ -87,7 +87,7 @@ void local_unit::consume(){
                     exit(-1);
                 }
 				if (eject_latch[i].flit_id != eject_flit_counter[i]){
-					printf("error in local unit (%d,%d,%d): body flit id is not right: from (%d,%d,%d), whose dst is (%d,%d,%d), id is %d, packet id is %d, expected id is %d\n", cur_x, cur_y, cur_z, eject_latch[i].src_x, eject_latch[i].src_y, eject_latch[i].src_z, eject_latch[i].dst_x, eject_latch[i].dst_y, eject_latch[i].dst_z, eject_latch[i].flit_id, eject_latch[i].packet_id, eject_flit_counter[i]);
+					printf("ejecting from dir: %d, error in local unit (%d,%d,%d): body flit id is not right: from (%d,%d,%d), whose dst is (%d,%d,%d), id is %d, packet id is %d, expected id is %d, whose age is %d\n\n", i, cur_x, cur_y, cur_z, eject_latch[i].src_x, eject_latch[i].src_y, eject_latch[i].src_z, eject_latch[i].dst_x, eject_latch[i].dst_y, eject_latch[i].dst_z, eject_latch[i].flit_id, eject_latch[i].packet_id, eject_flit_counter[i], eject_latch[i].priority_age);
 					exit(-1);
 				}
                 eject_flit_counter[i]++;
@@ -168,20 +168,24 @@ void local_unit::produce(){
 
     for(int i = 0; i < PORT_NUM; ++i){
 
-		if (!inject_avail_latch[i] && inject_avail_post_latch[i] && (credit_period_counter != CREDIT_BACK_PERIOD)){
-
-			if (inject[i].valid && (inject[i].flit_type == SINGLE_FLIT || inject[i].flit_type == HEAD_FLIT)){
-				pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].sent = true;
-				pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].rcvd = false;
-				pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].send_time_stamp = cycle_counter;
-			}
-			if (inject[i].valid && (inject[i].flit_type == SINGLE_FLIT || inject[i].flit_type == TAIL_FLIT))
+		//if (!inject_avail_latch[i] && inject_avail_post_latch[i] && (credit_period_counter != CREDIT_BACK_PERIOD)){
+		if (inject_avail_latch[i]) {
+			if (inject_control_counter[i] == packet_size && inject_avail_latch[i])
 				inject_pckt_counter[i]++;
-			inject_control_counter[i] = (inject_control_counter[i] <= injection_gap + packet_size - 1) ? inject_control_counter[i] + 1 : 0;
+			inject_control_counter[i] = (inject_control_counter[i] <= injection_gap + packet_size) ? inject_control_counter[i] + 1 : 1;
+			
+			
+			
 		}
             if(inject_pckt_counter[i] < global_injection_packet_size[i][cur_z][cur_y][cur_x]){
 				
-                if(inject_control_counter[i] <= packet_size - 1){ 
+                if(inject_control_counter[i] <= packet_size){ 
+					if (inject_control_counter[i] == 1) {
+						pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].sent = true;
+						pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].rcvd = false;
+						pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].send_time_stamp = cycle_counter;
+					}
+
                     if(packet_size == 1){
 						
                         inject[i].flit_type = SINGLE_FLIT;
@@ -199,7 +203,7 @@ void local_unit::produce(){
 					//	pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].sent = true;
 					//	pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].rcvd = false;
 						
-                        if(inject_control_counter[i] == 0){
+                        if(inject_control_counter[i] == 1){
                             inject[i].flit_type = HEAD_FLIT;
                             inject[i].flit_id = 0;
 							inject[i].packet_id = inject_pckt_counter[i];
@@ -210,9 +214,9 @@ void local_unit::produce(){
 							inject[i].payload = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].payload;
 					//		pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].send_time_stamp = cycle_counter;
                         }
-                        else if(inject_control_counter[i] > 0 && inject_control_counter[i] < packet_size - 1){
+                        else if(inject_control_counter[i] > 1 && inject_control_counter[i] < packet_size){
                             inject[i].flit_type = BODY_FLIT;
-                            inject[i].flit_id = inject_control_counter[i];
+                            inject[i].flit_id = inject_control_counter[i] - 1;
 							inject[i].packet_id = inject_pckt_counter[i];
 							inject[i].dst_z = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].dst_z;
 							inject[i].dst_y = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].dst_y;
@@ -220,9 +224,9 @@ void local_unit::produce(){
 							inject[i].priority_dist = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].mahattan_dist;
 							inject[i].payload = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].payload;
                         }
-                        else if(inject_control_counter[i] == packet_size - 1){
+                        else if(inject_control_counter[i] == packet_size){
                             inject[i].flit_type = TAIL_FLIT;
-                            inject[i].flit_id = inject_control_counter[i];      
+                            inject[i].flit_id = inject_control_counter[i] - 1;      
 							inject[i].packet_id = inject_pckt_counter[i];
 							inject[i].dst_z = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].dst_z;
 							inject[i].dst_y = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].dst_y;
@@ -245,7 +249,7 @@ void local_unit::produce(){
                     inject[i].src_x = cur_x;
                     inject[i].src_y = cur_y;
                     inject[i].src_z = cur_z;
-                    
+					
                     //inject[i].packet_size = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].packet_size;
 
                 //log the injected packet
@@ -257,17 +261,17 @@ void local_unit::produce(){
                     inject[i].valid = false;
                     
                 }
-				if ((inject_avail_post_latch[i] || inject_avail_latch[i]) && (credit_period_counter != (CREDIT_BACK_PERIOD-2))){
-
-					if (inject[i].valid  && (inject[i].flit_type == SINGLE_FLIT || inject[i].flit_type == HEAD_FLIT)){
-						pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].sent = true;
-						pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].rcvd = false;
-						pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].send_time_stamp = cycle_counter;
-					}
-					if (inject[i].valid && (inject[i].flit_type == SINGLE_FLIT || inject[i].flit_type == TAIL_FLIT))
-						inject_pckt_counter[i]++;
-					inject_control_counter[i] = (inject_control_counter[i] <= injection_gap + packet_size - 1) ? inject_control_counter[i] + 1 : 0;
-				}
+				//if ((inject_avail_post_latch[i] || inject_avail_latch[i]) && (credit_period_counter != (CREDIT_BACK_PERIOD-2))){
+//				if ((inject_avail_latch[i])) {
+//					if (inject[i].valid  && (inject[i].flit_type == SINGLE_FLIT || inject[i].flit_type == HEAD_FLIT)){
+//						pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].sent = true;
+//						pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].rcvd = false;
+//						pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].send_time_stamp = cycle_counter;
+//					}
+//					if (inject[i].valid && (inject[i].flit_type == SINGLE_FLIT || inject[i].flit_type == TAIL_FLIT))
+//						inject_pckt_counter[i]++;
+//					inject_control_counter[i] = (inject_control_counter[i] <= injection_gap + packet_size - 1) ? inject_control_counter[i] + 1 : 0;
+//				}
 
 
 

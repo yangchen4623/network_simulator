@@ -26,14 +26,14 @@ void node::node_init(int Cur_x, int Cur_y, int Cur_z, flit* In_xpos, flit* In_yp
     for(int i = 0; i < PORT_NUM; ++i){
 		in_latch[i].valid = false;
         in_latch_ptrs[i] = &(in_latch[i]);
-        inject_latch_ptrs[i] = &(app_core.inject[i]);
+//        inject_latch_ptrs[i] = &(app_core.inject[i]);
         inject_avail_ptrs[i] = &(internal_router.out_avail_for_inject[i]);
         eject_ptrs[i] = &(internal_router.eject[i]);
     }
 
-    internal_router.router_init(cur_x, cur_y, cur_z, SA_mode, routing_mode, in_latch_ptrs, inject_latch_ptrs);
+    internal_router.router_init(cur_x, cur_y, cur_z, SA_mode, routing_mode, injection_mode, in_latch_ptrs, inject_latch_ptrs);
 
-    app_core.local_unit_init(cur_x, cur_y, cur_z, injection_mode, INJECTION_GAP, PACKET_SIZE, PACKET_NUM, eject_ptrs, inject_avail_ptrs);
+//    app_core.local_unit_init(cur_x, cur_y, cur_z, injection_mode, INJECTION_GAP, PACKET_SIZE, PACKET_NUM, eject_ptrs, inject_avail_ptrs);
 
 }
 void node::consume(){
@@ -43,12 +43,12 @@ void node::consume(){
     in_latch[3] = *(in_xneg);
     in_latch[4] = *(in_yneg);
     in_latch[5] = *(in_zneg); 
-    app_core.consume();
+//    app_core.consume();
     internal_router.consume();
 }
 void node::produce(){
 	internal_router.produce();
-    app_core.produce();
+//    app_core.produce();
 
 	out_xpos = internal_router.out[0]; 
 	out_ypos = internal_router.out[1];

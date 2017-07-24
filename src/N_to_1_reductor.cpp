@@ -81,6 +81,10 @@ void N_to_1_reductor::consume(){
 		}
     }
 
+
+	if (occupy && out_avail_latch && out.valid && out.flit_type == TAIL_FLIT)
+		occupy = false;
+
 	for (int i = 0; i < N_fan_in; ++i){
 		in_Q_inst[i].consume();
 	}
@@ -117,8 +121,9 @@ void N_to_1_reductor::produce(){
 	out = in_slot[selector];
 	if (out.valid && (out.flit_type == HEAD_FLIT || out.flit_type == BODY_FLIT))
 		occupy = true;
-	else if (out.valid && out.flit_type == TAIL_FLIT)
-		occupy = false;
+
+//	else if (out.valid && out.flit_type == TAIL_FLIT && out_avail_latch)
+//		occupy = false;
 
 	for (int i = 0; i < N_fan_in; ++i){
 		in_avail[i] = in_Q_inst[i].in_avail;

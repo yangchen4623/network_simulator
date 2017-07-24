@@ -1,12 +1,13 @@
 #include "router.h"
 
-void router::router_init(int Cur_x, int Cur_y, int Cur_z, int SA_Mode, int Routing_mode, flit** In, flit** Inject){
+void router::router_init(int Cur_x, int Cur_y, int Cur_z, int SA_Mode, int Routing_mode, int Injection_mode, flit** In, flit** Inject){
     cur_x = Cur_x;
     cur_y = Cur_y;
     cur_z = Cur_z;
 
     SA_mode = SA_Mode;
     routing_mode = Routing_mode;
+	injection_mode = Injection_mode;
 
 
     credit_period_counter = 0;
@@ -22,6 +23,13 @@ void router::router_init(int Cur_x, int Cur_y, int Cur_z, int SA_Mode, int Routi
 		inject_latch[i].valid = false;
 		in_latch[i].valid = false;
     }
+
+	for (int i = 0; i < PORT_NUM; ++i) {
+		eject_ptrs[i] = &eject[i];
+		inject_avail_ptrs[i] = &out_avail_for_inject[i];
+	}
+
+	app_core.local_unit_init(cur_x, cur_y, cur_z, injection_mode, INJECTION_GAP, PACKET_SIZE, PACKET_NUM, eject_ptrs, inject_avail_ptrs);
 
     //allocate space for those subentities need dynamic allocation
 
@@ -72,7 +80,7 @@ void router::consume(){
         else{
             in_latch[i] = *(in[i]);
         }
-        inject_latch[i] = *(inject[i]);
+      //  inject_latch[i] = *(inject[i]);
     }
     
 
@@ -92,7 +100,7 @@ void router::consume(){
     }
 
     xbar.consume();  
-
+	app_core.consume();
 
 
 }
@@ -110,6 +118,7 @@ void router::produce(){
         VCs_list[i].produce();
     }
     xbar.produce();
+	app_core.produce();
 
     //increase the credit_period_counter
     
@@ -120,20 +129,47 @@ void router::produce(){
     
 
     //decide all of the out_avail(s)
+	for (int i = 0; i < PORT_NUM; ++i) {
+		if (credit_period_counter != CREDIT_BACK_PERIOD - 1) {
+			if (downstream_credits[i] >= CREDIT_THRESHOlD) {
+				if (occupy_by_inject[i]) {
+					out_avail_for_passthru[i] = false;
+				}
+				else if (xbar.out[i].valid || occupy_by_passthru[i]) {	
+					out_avail_for_passthru[i] = true;
+				}
+				else {
+					out_avail_for_passthru[i] = true;
+				}
+				//				if (!occupy_by_inject[i]){
+				//					out_avail_for_passthru[i] = true;
+				//					out_avail_for_inject[i] = false;
+				//				}
+			}
+			else {
+				out_avail_for_passthru[i] = false;
+			}
+		}
+		else {
+			//time to send back credit_period_counter
+			out_avail_for_passthru[i] = false;
+		}
+	}
+
     for(int i = 0; i < PORT_NUM; ++i){
         if(credit_period_counter != CREDIT_BACK_PERIOD - 1){
 			if (downstream_credits[i] >= CREDIT_THRESHOlD){
 				if (occupy_by_inject[i]){
                     out_avail_for_inject[i] = true;
-					out_avail_for_passthru[i] = false;
+//					out_avail_for_passthru[i] = false;
                 }
 				else if (xbar.out[i].valid || occupy_by_passthru[i]){
 					out_avail_for_inject[i] = false;
-					out_avail_for_passthru[i] = true;
+//					out_avail_for_passthru[i] = true;
 				}
 				else{
 					out_avail_for_inject[i] = true;
-					out_avail_for_passthru[i] = true;
+//					out_avail_for_passthru[i] = true;
 				}
 //				if (!occupy_by_inject[i]){
 //					out_avail_for_passthru[i] = true;
@@ -141,14 +177,14 @@ void router::produce(){
 //				}
             }
             else{
-                out_avail_for_passthru[i] = false;
+//                out_avail_for_passthru[i] = false;
                 out_avail_for_inject[i] = false;
             }
             
         }
         else{
             //time to send back credit_period_counter
-            out_avail_for_passthru[i] = false;
+ //           out_avail_for_passthru[i] = false;
             out_avail_for_inject[i] = false;
         }
     }
@@ -164,10 +200,13 @@ void router::produce(){
 		else if (xbar.out[i].valid && (!(occupy_by_inject[i]))){
 			out[i] = xbar.out[i];
 		}
+		else if ((!(xbar.out[i].valid)) && occupy_by_passthru[i]) {
+			out[i] = xbar.out[i];
+		}
 //		else if ((!xbar.out[i].valid) && (!(occupy_by_inject[i])))
 //			out[i].valid = false;
 		else 
-			out[i] = inject_latch[i];
+			out[i] = app_core.inject[i];
 
     }
 
@@ -177,17 +216,17 @@ void router::produce(){
 	}
 	//update occupy_by_passthru
 	for (int i = 0; i < PORT_NUM; ++i){
-		if (xbar.out[i].valid && xbar.out[i].flit_type == HEAD_FLIT)
+		if (xbar.out[i].valid && (!occupy_by_inject[i]) && xbar.out[i].flit_type == HEAD_FLIT)
 			occupy_by_passthru[i] = true;
 		else if (xbar.out[i].valid && xbar.out[i].flit_type == TAIL_FLIT && credit_period_counter != CREDIT_BACK_PERIOD - 1)
 			occupy_by_passthru[i] = false;
 	}
 	//update occupy_by_inject
 	for (int i = 0; i < PORT_NUM; ++i){
-		if (inject_latch[i].valid && (!occupy_by_passthru[i]) && inject_latch[i].flit_type == HEAD_FLIT){
+		if (app_core.inject[i].valid && (!occupy_by_passthru[i]) && app_core.inject[i].flit_type == HEAD_FLIT){
 			occupy_by_inject[i] = true;
 		}
-		else if (inject_latch[i].valid && inject_latch[i].flit_type == TAIL_FLIT){
+		else if (app_core.inject[i].valid && app_core.inject[i].flit_type == TAIL_FLIT && credit_period_counter != CREDIT_BACK_PERIOD - 1){
 			occupy_by_inject[i] = false;
 		}
 	}

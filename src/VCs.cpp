@@ -140,8 +140,12 @@ void VCs::produce(){
         }
         else if(VC_state[i] == VC_WAITING_FOR_OVC){
             if(VC_array[i].out_avail_latch){
-                VC_state[i] = VC_ACTIVE;
+				if (VC_array[i].out.flit_type == SINGLE_FLIT)
+					VC_state[i] = VC_IDLE;
+				else
+					VC_state[i] = VC_ACTIVE;
             }
+		
             else{
                 VC_state[i] = VC_WAITING_FOR_OVC;
             }
