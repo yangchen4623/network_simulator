@@ -69,7 +69,7 @@ char comp_inject_dir(int src_x, int src_y, int src_z, int dst_x, int dst_y, int 
 		else if (z_dir == 1)
 			ret = DIR_ZPOS;
 		else{
-			int i = 0;// rand() % 2;
+			int i = rand() % 2;
 			if (i == 0)
 				ret = DIR_ZPOS;
 			else
@@ -84,7 +84,7 @@ char comp_inject_dir(int src_x, int src_y, int src_z, int dst_x, int dst_y, int 
 		else if (y_dir == 1)
 			ret = DIR_YPOS;
 		else{
-			int i = 0;// rand() % 2;
+			int i = rand() % 2;
 			if (i == 0)
 				ret = DIR_YPOS;
 			else
@@ -111,7 +111,7 @@ char comp_inject_dir(int src_x, int src_y, int src_z, int dst_x, int dst_y, int 
 			}
 			else if (y_dir == 1 || y_dir == 0){//ypos is allowed
 				if (x_dir == -1){
-					int i = 0;// rand() % 2;
+					int i = 1;// rand() % 2;
 					if (i == 0)
 						ret = DIR_YPOS;
 					else
@@ -125,7 +125,7 @@ char comp_inject_dir(int src_x, int src_y, int src_z, int dst_x, int dst_y, int 
 						ret = DIR_XPOS;
 				}
 				else{
-					int i = 0;// rand() % 3;
+					int i = 2;// rand() % 3;
 					if (i == 0)
 						ret = DIR_YPOS;
 					else if (i == 1)
@@ -147,16 +147,16 @@ char comp_inject_dir(int src_x, int src_y, int src_z, int dst_x, int dst_y, int 
 						ret = DIR_XNEG;
 				}
 				else if (x_dir == 1){
-					int i = 0;// rand() % 2;
+					int i = 1;// rand() % 2;
 					if (i == 0)
 						ret = DIR_ZPOS;
 					else
 						ret = DIR_XPOS;
 				}
 				else{
-					int i = 0;// rand() % 3;
+					int i = 2;// rand() % 3;
 					if (i == 0)
-						ret = DIR_YPOS;
+						ret = DIR_ZPOS;
 					else if (i == 1)
 						ret = DIR_XPOS;
 					else
@@ -174,7 +174,7 @@ char comp_inject_dir(int src_x, int src_y, int src_z, int dst_x, int dst_y, int 
 						ret = DIR_XNEG;
 				}
 				else if (x_dir == 1){
-					int i = 0;// rand() % 3;
+					int i = 1;// rand() % 3;
 					if (i == 0)
 						ret = DIR_ZPOS;
 					else if (i == 1)
@@ -183,7 +183,7 @@ char comp_inject_dir(int src_x, int src_y, int src_z, int dst_x, int dst_y, int 
 						ret = DIR_XPOS;
 				}
 				else{
-					int i = 0;// rand() % 4;
+					int i = 3;// rand() % 4;
 					if (i == 0)
 						ret = DIR_YPOS;
 					else if (i == 1)
@@ -389,6 +389,7 @@ void gen_pattern_cube_nearest_neighbor(int pattern_size){ //each node multicast 
 
 								cur_inject_dir = comp_inject_dir(x, y, z, real_dst_x, real_dst_y, real_dst_z);
 								if (cur_inject_dir != DIR_EJECT){
+									pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].inject_dir = cur_inject_dir;
 									pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].src_x = x;
 									pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].src_y = y;
 									pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].src_z = z;
@@ -437,6 +438,30 @@ bool count_sent_and_rcvd(){
     return cur_rcvd_num == total_packet_sent;
 }
 
+bool print_unrcvd() {
+	int cur_sent_num = 0;
+	int cur_rcvd_num = 0;
+	for (int i = 0; i < PORT_NUM; ++i) {
+		for (int j = 0; j < ZSIZE; ++j) {
+			for (int k = 0; k < YSIZE; ++k) {
+				for (int m = 0; m < XSIZE; ++m) {
+					for (int n = 0; n < global_injection_packet_size[i][j][k][m]; ++n) {
+						if (pattern[i][j][k][m][n].valid && pattern[i][j][k][m][n].sent)
+							cur_sent_num++;
+						if (pattern[i][j][k][m][n].valid && pattern[i][j][k][m][n].rcvd)
+							cur_rcvd_num++;
+						if (pattern[i][j][k][m][n].valid && pattern[i][j][k][m][n].sent && !pattern[i][j][k][m][n].rcvd)
+							printf("(%d,%d,%d) to (%d,%d,%d), packet id %d,sent at %dth cycle, injection dir %d, is not rcvd\n", pattern[i][j][k][m][n].src_x, pattern[i][j][k][m][n].src_y, pattern[i][j][k][m][n].src_z, \
+								pattern[i][j][k][m][n].dst_x, pattern[i][j][k][m][n].dst_y, pattern[i][j][k][m][n].dst_z, pattern[i][j][k][m][n].id, pattern[i][j][k][m][n].send_time_stamp, pattern[i][j][k][m][n].inject_dir);
+					}
+				}
+			}
+		}
+	}
+	printf("total %d pckts, sent %d pckts, rcvd %d pckts\n", total_packet_sent, cur_sent_num, cur_rcvd_num);
+	return cur_rcvd_num == total_packet_sent;
+}
+
 void print_stats(){
     int packet_counter = 0;
     float avg_latency = 0;
@@ -468,7 +493,7 @@ void print_stats(){
 int main(){
 	srand((unsigned)time(NULL));
     int cycle_counter = 0;
-    int pattern_size = 5;
+    int pattern_size = 10;
 	gen_pattern_cube_nearest_neighbor(pattern_size);
 
     network network_UUT;
@@ -483,6 +508,10 @@ int main(){
                 break;
             }
         }
+		if (cycle_counter > 70000) {
+			print_unrcvd();
+			break;
+		}
         
     }
     print_stats();

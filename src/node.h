@@ -33,7 +33,7 @@ public:
 
     int injection_mode = INJECTION_NEAREST_NEIGHBOR;
     int routing_mode = ROUTING_DOR_XYZ;
-    int SA_mode = SA_FARTHEST_FIRST;
+    int SA_mode = SA_OLDEST_FIRST;
 
     router internal_router;
  //   local_unit app_core;

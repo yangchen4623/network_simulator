@@ -61,8 +61,14 @@ void VCs::consume(){
         if(in->valid && VC_array[grant_index].in_avail){
             //latch the in data
             in_latch[grant_index] = *in;
+			in_avail = true;
         }
+		
     }
+	else {
+		if(in->valid)
+			in_avail = false;
+	}
 
     //latch the out avail 
     for(int i = 0; i < VC_NUM; ++i){
@@ -167,7 +173,8 @@ void VCs::produce(){
         in_avail = VC_array[grant_index].in_avail;
     }
     else{
-        in_avail = false;
+		if(in->valid)
+			in_avail = false;
     }
     //wipe all the in_latch
     for(int i = 0; i < VC_NUM; ++i){

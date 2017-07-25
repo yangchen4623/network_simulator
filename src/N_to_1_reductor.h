@@ -21,7 +21,7 @@ public:
     flit out;
 	flit* in_slot;
     fifo* in_Q_inst; //will allocate by N_fan_in fifo after init
-	
+	int cycle_counter;
 
     void alloc(int N_Fan_in);
     void N_to_1_reductor_init(int Out_dir, int Level, int Id, int Mode, flit** In_list, bool* Out_avail);

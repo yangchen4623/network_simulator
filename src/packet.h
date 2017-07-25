@@ -10,6 +10,7 @@ struct packet{
 	int dst_y;
 	int dst_z;
 	int mahattan_dist;
+	int inject_dir;
 	bool sent;
 	bool rcvd;
 	int payload;

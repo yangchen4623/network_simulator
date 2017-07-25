@@ -35,6 +35,7 @@ void N_to_1_reductor::alloc(int N_Fan_in){
         printf("No mem space for %d slots(fifos) for fifo* in_Q_inst in reductor in %d dir, %d level, %d id\n", N_fan_in, out_dir, level, id);
         exit(-1);
     }
+	cycle_counter= 0;
 
 	
 
@@ -92,6 +93,7 @@ void N_to_1_reductor::consume(){
 }
 
 void N_to_1_reductor::produce(){
+	cycle_counter++;
 	for (int i = 0; i < N_fan_in; ++i)
 		in_Q_inst[i].produce();
 
@@ -108,7 +110,7 @@ void N_to_1_reductor::produce(){
 				cur_priority = in_slot[i].priority_dist;
 			}
 			else{
-				cur_priority = in_slot[i].priority_age;
+				cur_priority = cycle_counter - in_slot[i].priority_age;
 			}//needs more code to implement mixed priority
 			if (in_slot[i].valid && cur_priority < 0){
 				printf("error!, neg priority\n");

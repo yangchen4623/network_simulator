@@ -35,7 +35,7 @@ void router::router_init(int Cur_x, int Cur_y, int Cur_z, int SA_Mode, int Routi
 
     //init and connect all the subentities
     for(int i = 0; i < PORT_NUM; ++i){
-        in_avail_from_RC[i] = &(RC_list[i].in_avail);
+        in_avail_from_RC[i] = &(VCs_list[i].in_avail);
         input_buffer_list[i].fifo_init(IN_Q_SIZE, &in_latch[i], in_avail_from_RC[i]);
     }
 
@@ -87,17 +87,20 @@ void router::consume(){
 
 
     //call all the consume for the subentities
+	for (int i = 0; i < PORT_NUM; ++i) {
+		VCs_list[i].consume();
+	}
+
     for(int i = 0; i < PORT_NUM; ++i){
         input_buffer_list[i].consume();
     }
+
+
 
     for(int i = 0; i < PORT_NUM; ++i){
         RC_list[i].consume();
     }
 
-    for(int i = 0; i < PORT_NUM; ++i){
-        VCs_list[i].consume();
-    }
 
     xbar.consume();  
 	app_core.consume();
@@ -111,12 +114,13 @@ void router::produce(){
     for(int i = 0; i < PORT_NUM; ++i){
         input_buffer_list[i].produce();
     }
+	for (int i = 0; i < PORT_NUM; ++i) {
+		VCs_list[i].produce();
+	}
     for(int i = 0; i < PORT_NUM; ++i){
         RC_list[i].produce();
     }
-    for(int i = 0; i < PORT_NUM; ++i){
-        VCs_list[i].produce();
-    }
+
     xbar.produce();
 	app_core.produce();
 
@@ -197,6 +201,9 @@ void router::produce(){
             out[i].flit_type = CREDIT_FLIT;
             out[i].payload = upstream_credits[i];
         }
+		else if (downstream_credits[i] < CREDIT_THRESHOlD) {
+			out[i].valid = false;
+		}
 		else if (xbar.out[i].valid && (!(occupy_by_inject[i]))){
 			out[i] = xbar.out[i];
 		}

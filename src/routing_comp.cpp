@@ -101,37 +101,37 @@ void routing_comp::produce(){
     else{
         switch(dir){
             case DIR_XPOS:
-                if(cur_x == 0)
+                if(cur_x == XSIZE - 1)
                     new_VC_class = 1;
                 else
                     new_VC_class = old_VC_class;
                 break;
             case DIR_XNEG:
-                if(cur_x == XSIZE - 1)
+                if(cur_x == 0)
                     new_VC_class = 0;
                 else
                     new_VC_class = old_VC_class;
                 break;
             case DIR_YPOS:
-                if(cur_y == 0)
+                if(cur_y == YSIZE - 1)
                     new_VC_class = 1;
                 else
                     new_VC_class = old_VC_class;
                 break;
             case DIR_YNEG:
-                if(cur_y == YSIZE - 1)
+                if(cur_y == 0)
                     new_VC_class = 0;
                 else
                     new_VC_class = old_VC_class;
 				break;            
             case DIR_ZPOS:
-                if(cur_z == 0) 
+                if(cur_z == ZSIZE - 1)
                     new_VC_class = 1;
                 else 
                     new_VC_class = old_VC_class;
                 break;
             case DIR_ZNEG:
-                if(cur_z == ZSIZE - 1)
+                if(cur_z == 0)
                     new_VC_class = 0;
                 else
                     new_VC_class = old_VC_class;
@@ -154,7 +154,7 @@ void routing_comp::produce(){
     }
 //not eject_enable, the traffic is bypass
 	flit_eject.valid = false;
-    if(out_avail){
+    if(out_avail_latch){
         flit_after_RC = in_latch;
         if(in_latch.valid){
             flit_after_RC.dir_out = dir;

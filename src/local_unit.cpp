@@ -87,7 +87,7 @@ void local_unit::consume(){
                     exit(-1);
                 }
 				if (eject_latch[i].flit_id != eject_flit_counter[i]){
-					printf("ejecting from dir: %d, error in local unit (%d,%d,%d): body flit id is not right: from (%d,%d,%d), whose dst is (%d,%d,%d), id is %d, packet id is %d, expected id is %d, whose age is %d\n\n", i, cur_x, cur_y, cur_z, eject_latch[i].src_x, eject_latch[i].src_y, eject_latch[i].src_z, eject_latch[i].dst_x, eject_latch[i].dst_y, eject_latch[i].dst_z, eject_latch[i].flit_id, eject_latch[i].packet_id, eject_flit_counter[i], eject_latch[i].priority_age);
+					printf("ejecting from dir: %d, error in local unit (%d,%d,%d): body flit id is not right: from (%d,%d,%d), whose dst is (%d,%d,%d), id is %d, packet id is %d, expected id is %d, whose age is %d, inject_dir is %d\n\n", i, cur_x, cur_y, cur_z, eject_latch[i].src_x, eject_latch[i].src_y, eject_latch[i].src_z, eject_latch[i].dst_x, eject_latch[i].dst_y, eject_latch[i].dst_z, eject_latch[i].flit_id, eject_latch[i].packet_id, eject_flit_counter[i], eject_latch[i].priority_age, eject_latch[i].inject_dir);
 					exit(-1);
 				}
                 eject_flit_counter[i]++;
@@ -110,7 +110,7 @@ void local_unit::consume(){
                     exit(-1);
                 }
                 if(eject_flit_counter[i] + 1 != packet_size){
-                    printf("error in local unit (%d,%d,%d): tail flit arrived but this packet is not complete: from (%d,%d,%d), whose dst is (%d,%d,%d), id is %d, packet id is %d, arrived flits: %d, expected flits: %d\n", cur_x, cur_y, cur_z, eject_latch[i].src_x, eject_latch[i].src_y, eject_latch[i].src_z, eject_latch[i].dst_x, eject_latch[i].dst_y, eject_latch[i].dst_z, eject_latch[i].flit_id, eject_latch[i].packet_id, eject_flit_counter[i] + 1, packet_size);
+                    printf("error in local unit (%d,%d,%d): eject from %d, tail flit arrived but this packet is not complete: from (%d,%d,%d), whose dst is (%d,%d,%d), id is %d, packet id is %d, arrived flits: %d, expected flits: %d, inject dir is %d\n", i, cur_x, cur_y, cur_z, eject_latch[i].src_x, eject_latch[i].src_y, eject_latch[i].src_z, eject_latch[i].dst_x, eject_latch[i].dst_y, eject_latch[i].dst_z, eject_latch[i].flit_id, eject_latch[i].packet_id, eject_flit_counter[i] + 1, packet_size, eject_latch[i].inject_dir);
                     exit(-1);
                 }
 				if (eject_latch[i].flit_id != eject_flit_counter[i]){
