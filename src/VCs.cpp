@@ -191,3 +191,13 @@ void VCs::VCs_free(){
 	}
 
 }
+
+int VCs::count_active_VCs(){
+	int ret = 0;
+	for (int i = 0; i < VC_NUM; i++){
+		if (VC_state[i] == VC_ACTIVE || VC_state[i] == VC_WAITING_FOR_OVC)
+			ret++;
+	}
+	return ret;
+
+}

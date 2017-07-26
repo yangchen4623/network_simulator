@@ -173,24 +173,30 @@ void reduction_tree::consume(){
 
 }
 
-void reduction_tree::produce(){
+int reduction_tree::produce(){
      //call all the subentities produce()
+
     for(int i = 0; i < l1_N; ++i){
-        l1_reductors[i].produce();
+		if (l1_reductors[i].produce() == -1)
+			return -1;
     }
     for(int i = 0; i < l2_N; ++i){
-        l2_reductors[i].produce();
+        if(l2_reductors[i].produce() == -1)
+			return -1;
     }
     for(int i = 0; i < l3_N; ++i){
-        l3_reductors[i].produce();
+		if (l3_reductors[i].produce() == -1)
+			return -1;
     }
-    l4_reductor.produce();
+    if(l4_reductor.produce() == -1)
+		return -1;
 
     //update in_avail and out
     for(int i = 0; i < N_fan_in; ++i){
         in_avail[i] = l1_reductors[i / l1_W].in_avail[i % l1_W];
     }
     out = l4_reductor.out;
+	return 0;
 }
 void reduction_tree::reduction_tree_free(){
 	for(int i = 0; i < l1_N; ++i){

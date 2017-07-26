@@ -41,7 +41,7 @@ public:
 
 	void local_unit_init(int Cur_x, int Cur_y, int Cur_z, int Mode, int Injection_gap, int Packet_size, int Packet_num, flit** Eject, bool** Inject_avail);
     void produce();
-    void consume();
+    int consume();
 
 };
 

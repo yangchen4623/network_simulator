@@ -61,10 +61,11 @@ void crossbar_switch::consume(){
     }
     return;
 }
-void crossbar_switch::produce(){
+int crossbar_switch::produce(){
     //call all the produce functions of all the reduction trees
     for(int i = 0; i < PORT_NUM; ++i){
-        tree_list[i].produce();
+        if(tree_list[i].produce() == -1)
+			return -1;
     }
 
     //update the out 
@@ -73,7 +74,7 @@ void crossbar_switch::produce(){
     }
 
     //the in_avail belongs to the lookup_in_avail
-
+	return 0;
 }
 
 bool crossbar_switch::lookup_in_avail(int port_id, int out_dir){

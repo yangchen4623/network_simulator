@@ -27,7 +27,7 @@ public:
 
    void crossbar_switch_init(int Mode, flit** In_list, bool** Out_avail);
    void consume();
-   void produce();
+   int produce();
    bool lookup_in_avail(int port_id, int our_dir);
    void crossbar_switch_free();
 };

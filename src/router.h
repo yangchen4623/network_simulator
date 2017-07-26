@@ -66,10 +66,10 @@ public:
     bool occupy_by_inject[PORT_NUM]; //bool value denoting the out port is occupy the inject traffic
 	bool occupy_by_passthru[PORT_NUM];
     
-    void router_init(int Cur_x, int Cur_y, int Cur_z, int SA_Mode, int Routing_mode, int Injection_mode, flit** In, flit** Inject);
+	void router_init(int Cur_x, int Cur_y, int Cur_z, int SA_Mode, int Routing_mode, int Injection_mode, flit** In, flit** Inject, int Injection_gap, int Packet_size);
 
-    void consume();
-    void produce();
+    int consume();
+    int produce();
     void router_free();
 
     

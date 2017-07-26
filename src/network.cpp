@@ -5,7 +5,7 @@
 #include<stdio.h>
 
 
-void network::network_init(int x, int y, int z){
+void network::network_init(int x, int y, int z, int Injection_mode, int Routing_mode, int Sa_mode, int Injection_gap, int Packet_size){
     size_x = x;
     size_y = y;
     size_z = z;
@@ -175,18 +175,19 @@ void network::network_init(int x, int y, int z){
 
 				link_list_zneg[i][j][k].link_init(LINKDELAY, DIR_ZNEG, &(node_list[i][j][k].out_zneg), &node_list[i][j][k], &node_list[(i == 0) ? (size_z - 1) : (i - 1)][j][k]);
                 
-				node_list[i][j][k].node_init(k, j, i, &(link_list_xneg[i][j][(k + 1 == size_x) ? 0 : (k + 1)].out), &(link_list_yneg[i][(j + 1 == size_y) ? 0 : (j + 1)][k].out), &(link_list_zneg[(i + 1 == size_z) ? 0 : (i + 1)][j][k].out), &(link_list_xpos[i][j][(k == 0) ? (size_x - 1) : (k - 1)].out), &(link_list_ypos[i][(j == 0) ? (size_y - 1) : (j - 1)][k].out), &(link_list_zpos[(i == 0) ? (size_z - 1) : (i - 1)][j][k].out));
+				node_list[i][j][k].node_init(k, j, i, &(link_list_xneg[i][j][(k + 1 == size_x) ? 0 : (k + 1)].out), &(link_list_yneg[i][(j + 1 == size_y) ? 0 : (j + 1)][k].out), &(link_list_zneg[(i + 1 == size_z) ? 0 : (i + 1)][j][k].out), &(link_list_xpos[i][j][(k == 0) ? (size_x - 1) : (k - 1)].out), &(link_list_ypos[i][(j == 0) ? (size_y - 1) : (j - 1)][k].out), &(link_list_zpos[(i == 0) ? (size_z - 1) : (i - 1)][j][k].out), Injection_mode, Routing_mode, Sa_mode, Injection_gap, Packet_size);
 
             }
         }
     }
 }
 
-void network::consume(){
+int network::consume(){
 	for(int i = 0; i < size_z; ++i){
 		for (int j = 0; j < size_z; ++j){
 			for (int k = 0; k < size_x; ++k){
-				node_list[i][j][k].consume();
+				if(node_list[i][j][k].consume() == -1)
+					return -1;
 				link_list_xpos[i][j][k].consume();
 				link_list_ypos[i][j][k].consume();
 				link_list_zpos[i][j][k].consume();
@@ -196,14 +197,16 @@ void network::consume(){
 			}
 		}
 	}
+	return 0;
 }
 
 
-void network::produce(){
+int network::produce(){
 	for (int i = 0; i < size_z; ++i){
 		for (int j = 0; j < size_z; ++j){
 			for (int k = 0; k < size_x; ++k){
-				node_list[i][j][k].produce();
+				if(node_list[i][j][k].produce() == -1)
+					return -1;
 				link_list_xpos[i][j][k].produce();
 				link_list_ypos[i][j][k].produce();
 				link_list_zpos[i][j][k].produce();
@@ -213,6 +216,7 @@ void network::produce(){
 			}
 		}
 	}
+	return 0;
 }
 
 void network::network_free(){
@@ -262,3 +266,19 @@ void network::network_free(){
 	free(link_list_zneg);
 }
 
+int network::network_max_busy_VC_num(){
+	int ret = 0;
+	for (int i = 0; i < size_z; ++i){
+		for (int j = 0; j < size_y; ++j){
+			for (int k = 0; k < size_x; ++k){
+				for (int m = 0; m < VC_NUM; ++m){
+					int tmp = node_list[i][j][k].internal_router.VCs_list[m].count_active_VCs();
+					if (tmp > ret)
+						ret = tmp;
+				}
+			}
+		}
+	}
+	return ret;
+
+}

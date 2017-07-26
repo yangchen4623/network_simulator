@@ -1,6 +1,6 @@
 #include "router.h"
 
-void router::router_init(int Cur_x, int Cur_y, int Cur_z, int SA_Mode, int Routing_mode, int Injection_mode, flit** In, flit** Inject){
+void router::router_init(int Cur_x, int Cur_y, int Cur_z, int SA_Mode, int Routing_mode, int Injection_mode, flit** In, flit** Inject, int Injection_gap, int Packet_size){
     cur_x = Cur_x;
     cur_y = Cur_y;
     cur_z = Cur_z;
@@ -29,7 +29,7 @@ void router::router_init(int Cur_x, int Cur_y, int Cur_z, int SA_Mode, int Routi
 		inject_avail_ptrs[i] = &out_avail_for_inject[i];
 	}
 
-	app_core.local_unit_init(cur_x, cur_y, cur_z, injection_mode, INJECTION_GAP, PACKET_SIZE, PACKET_NUM, eject_ptrs, inject_avail_ptrs);
+	app_core.local_unit_init(cur_x, cur_y, cur_z, injection_mode, Injection_gap, Packet_size, PACKET_NUM, eject_ptrs, inject_avail_ptrs);
 
     //allocate space for those subentities need dynamic allocation
 
@@ -70,7 +70,7 @@ void router::router_init(int Cur_x, int Cur_y, int Cur_z, int SA_Mode, int Routi
 
 }
 
-void router::consume(){
+int router::consume(){
     //latch in and inject
     for(int i = 0; i < PORT_NUM; ++i){
         if(in[i]->valid && in[i]->flit_type == CREDIT_FLIT){
@@ -103,12 +103,14 @@ void router::consume(){
 
 
     xbar.consume();  
-	app_core.consume();
+	if(app_core.consume() == -1)
+		return -1;
+	return 0;
 
 
 }
 
-void router::produce(){
+int router::produce(){
     //call all the produce fuctions for all the sub modules
     //
     for(int i = 0; i < PORT_NUM; ++i){
@@ -121,7 +123,8 @@ void router::produce(){
         RC_list[i].produce();
     }
 
-    xbar.produce();
+    if(xbar.produce() == -1)
+		return -1;
 	app_core.produce();
 
     //increase the credit_period_counter
@@ -225,7 +228,7 @@ void router::produce(){
 	for (int i = 0; i < PORT_NUM; ++i){
 		if (xbar.out[i].valid && (!occupy_by_inject[i]) && xbar.out[i].flit_type == HEAD_FLIT)
 			occupy_by_passthru[i] = true;
-		else if (xbar.out[i].valid && xbar.out[i].flit_type == TAIL_FLIT && credit_period_counter != CREDIT_BACK_PERIOD - 1)
+		else if (xbar.out[i].valid && xbar.out[i].flit_type == TAIL_FLIT && credit_period_counter != CREDIT_BACK_PERIOD - 1 && downstream_credits[i] >= CREDIT_THRESHOlD)
 			occupy_by_passthru[i] = false;
 	}
 	//update occupy_by_inject
@@ -233,13 +236,13 @@ void router::produce(){
 		if (app_core.inject[i].valid && (!occupy_by_passthru[i]) && app_core.inject[i].flit_type == HEAD_FLIT){
 			occupy_by_inject[i] = true;
 		}
-		else if (app_core.inject[i].valid && app_core.inject[i].flit_type == TAIL_FLIT && credit_period_counter != CREDIT_BACK_PERIOD - 1){
+		else if (app_core.inject[i].valid && app_core.inject[i].flit_type == TAIL_FLIT && credit_period_counter != CREDIT_BACK_PERIOD - 1 && downstream_credits[i] >= CREDIT_THRESHOlD){
 			occupy_by_inject[i] = false;
 		}
 	}
 
 
-
+	return 0;
 
 
 }

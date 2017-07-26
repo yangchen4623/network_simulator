@@ -16,10 +16,11 @@ private:
     link*** link_list_zpos;
     link*** link_list_zneg;
 public:
-    void network_init(int x, int y, int z);
-	void consume();
-	void produce();
+    void network_init(int x, int y, int z, int Injection_mode, int Routing_mode, int Sa_mode, int Injection_gap, int Packet_size);
+	int consume();
+	int produce();
 	void network_free();
+	int network_max_busy_VC_num();
 };
 
 #endif

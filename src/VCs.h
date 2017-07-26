@@ -26,6 +26,7 @@ public:
     fifo VC_array[VC_NUM];
     int VC_state[VC_NUM];
     void VCs_init(int Dir, flit* In, crossbar_switch* Sw);
+	int count_active_VCs();
     void consume();
     void produce();
 	void VCs_free();

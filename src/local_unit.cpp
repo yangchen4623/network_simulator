@@ -31,7 +31,7 @@ void local_unit::local_unit_init(int Cur_x, int Cur_y, int Cur_z, int Mode, int 
     all_pckt_rcvd = false;
 }
 
-void local_unit::consume(){
+int local_unit::consume(){
 	for (int i = 0; i < PORT_NUM; ++i){
 		eject_latch[i] = *(eject[i]);
 	}
@@ -49,19 +49,19 @@ void local_unit::consume(){
             if(eject_latch[i].flit_type == HEAD_FLIT){
                 if(eject_state[i] != EJECT_IDLE){
                     printf("ejecting from dir: %d, error in local unit (%d,%d,%d): unexpected head flit from (%d,%d,%d), whose dst is (%d,%d,%d), flit id is %d, packet id is %d, whose age is %d\n",i, cur_x, cur_y, cur_z, eject_latch[i].src_x, eject_latch[i].src_y, eject_latch[i].src_z, eject_latch[i].dst_x, eject_latch[i].dst_y, eject_latch[i].dst_z, eject_latch[i].flit_id, eject_latch[i].packet_id, eject_latch[i].priority_age);
-                    exit(-1);
+					return -1;
                 }
                 if(eject_latch[i].dst_x != cur_x || eject_latch[i].dst_y != cur_y || eject_latch[i].dst_z != cur_z){
                     printf("error in local unit (%d,%d,%d): head flit arrives wrong dst: from (%d,%d,%d), whose dst is (%d,%d,%d), flit id is %d, packet id is %d\n", cur_x, cur_y, cur_z, eject_latch[i].src_x, eject_latch[i].src_y, eject_latch[i].src_z, eject_latch[i].dst_x, eject_latch[i].dst_y, eject_latch[i].dst_z, eject_latch[i].flit_id, eject_latch[i].packet_id);
-                    exit(-1);
+					return -1;
                 }
                 if(pattern[eject_latch[i].inject_dir - 1][eject_latch[i].src_z][eject_latch[i].src_y][eject_latch[i].src_x][eject_latch[i].packet_id].sent == false){
 					printf("ejecting from dir: %d, error in local unit (%d,%d,%d): head flit has not been sent yet: from (%d,%d,%d), whose dst is (%d,%d,%d), id is %d, packet id is %d, whose age is %d\n", i, cur_x, cur_y, cur_z, eject_latch[i].src_x, eject_latch[i].src_y, eject_latch[i].src_z, eject_latch[i].dst_x, eject_latch[i].dst_y, eject_latch[i].dst_z, eject_latch[i].flit_id, eject_latch[i].packet_id, eject_latch[i].priority_age);
-                    exit(-1);
+					return -1;
                 }
 				if (eject_latch[i].flit_id != eject_flit_counter[i]){
 					printf("error in local unit (%d,%d,%d): head flit id is not right: from (%d,%d,%d), whose dst is (%d,%d,%d), id is %d, packet id is %d, expected id is %d\n", cur_x, cur_y, cur_z, eject_latch[i].src_x, eject_latch[i].src_y, eject_latch[i].src_z, eject_latch[i].dst_x, eject_latch[i].dst_y, eject_latch[i].dst_z, eject_latch[i].flit_id, eject_latch[i].packet_id, eject_flit_counter[i]);
-					exit(-1);
+					return -1;
 				}
                 eject_flit_counter[i]++;
                 eject_state[i] = EJECT_RECVING; 
@@ -72,50 +72,50 @@ void local_unit::consume(){
             else if(eject_latch[i].flit_type == BODY_FLIT){
                 if(eject_state[i] != EJECT_RECVING){
                     printf("ejecting from dir: %d, error in local unit (%d,%d,%d): unexpected body flit from (%d,%d,%d), whose dst is (%d,%d,%d), flit id is %d, packet id is %d\n", i, cur_x, cur_y, cur_z, eject_latch[i].src_x, eject_latch[i].src_y, eject_latch[i].src_z, eject_latch[i].dst_x, eject_latch[i].dst_y, eject_latch[i].dst_z, eject_latch[i].flit_id, eject_latch[i].packet_id);
-                    exit(-1);
+					return -1;
                 }
                 if(eject_latch[i].dst_x != cur_x || eject_latch[i].dst_y != cur_y || eject_latch[i].dst_z != cur_z){
                     printf("ejecting from dir: %d, error in local unit (%d,%d,%d): body flit arrives wrong dst: from (%d,%d,%d), whose dst is (%d,%d,%d), flit id is %d, packet id is %d, whose age is %d\n", i, cur_x, cur_y, cur_z, eject_latch[i].src_x, eject_latch[i].src_y, eject_latch[i].src_z, eject_latch[i].dst_x, eject_latch[i].dst_y, eject_latch[i].dst_z, eject_latch[i].flit_id, eject_latch[i].packet_id, eject_latch[i].priority_age);
-                    exit(-1);
+					return -1;
                 }
                 if(eject_latch[i].src_x != cur_eject_src_x[i] || eject_latch[i].src_y != cur_eject_src_y[i] || eject_latch[i].src_z != cur_eject_src_z[i]){
                     printf("error in local unit (%d,%d,%d): body mismatch with cur head flit: from (%d,%d,%d), whose dst is (%d,%d,%d), flit id is %d, packet id is %d\n", cur_x, cur_y, cur_z, eject_latch[i].src_x, eject_latch[i].src_y, eject_latch[i].src_z, eject_latch[i].dst_x, eject_latch[i].dst_y, eject_latch[i].dst_z, eject_latch[i].flit_id, eject_latch[i].packet_id);
-                    exit(-1);
+					return -1;
                 }
                 if(pattern[eject_latch[i].inject_dir - 1][eject_latch[i].src_z][eject_latch[i].src_y][eject_latch[i].src_x][eject_latch[i].packet_id].sent == false){
                     printf("error in local unit (%d,%d,%d): body flit has not been sent yet: from (%d,%d,%d), whose dst is (%d,%d,%d), id is %d, packet id is %d\n", cur_x, cur_y, cur_z, eject_latch[i].src_x, eject_latch[i].src_y, eject_latch[i].src_z, eject_latch[i].dst_x, eject_latch[i].dst_y, eject_latch[i].dst_z, eject_latch[i].flit_id, eject_latch[i].packet_id);
-                    exit(-1);
+					return -1;
                 }
 				if (eject_latch[i].flit_id != eject_flit_counter[i]){
 					printf("ejecting from dir: %d, error in local unit (%d,%d,%d): body flit id is not right: from (%d,%d,%d), whose dst is (%d,%d,%d), id is %d, packet id is %d, expected id is %d, whose age is %d, inject_dir is %d\n\n", i, cur_x, cur_y, cur_z, eject_latch[i].src_x, eject_latch[i].src_y, eject_latch[i].src_z, eject_latch[i].dst_x, eject_latch[i].dst_y, eject_latch[i].dst_z, eject_latch[i].flit_id, eject_latch[i].packet_id, eject_flit_counter[i], eject_latch[i].priority_age, eject_latch[i].inject_dir);
-					exit(-1);
+					return -1;
 				}
                 eject_flit_counter[i]++;
             }
             else if(eject_latch[i].flit_type == TAIL_FLIT){
                 if(eject_state[i] != EJECT_RECVING){
                     printf("error in local unit (%d,%d,%d): unexpected tail flit from (%d,%d,%d), whose dst is (%d,%d,%d), flit id is %d, packet id is %d\n", cur_x, cur_y, cur_z, eject_latch[i].src_x, eject_latch[i].src_y, eject_latch[i].src_z, eject_latch[i].dst_x, eject_latch[i].dst_y, eject_latch[i].dst_z, eject_latch[i].flit_id, eject_latch[i].packet_id);
-                    exit(-1);
+					return -1;
                 }
                 if(eject_latch[i].dst_x != cur_x || eject_latch[i].dst_y != cur_y || eject_latch[i].dst_z != cur_z){
                     printf("error in local unit (%d,%d,%d): tail flit arrives wrong dst: from (%d,%d,%d), whose dst is (%d,%d,%d), flit id is %d, packet id is %d\n", cur_x, cur_y, cur_z, eject_latch[i].src_x, eject_latch[i].src_y, eject_latch[i].src_z, eject_latch[i].dst_x, eject_latch[i].dst_y, eject_latch[i].dst_z, eject_latch[i].flit_id, eject_latch[i].packet_id);
-                    exit(-1);
+					return -1;
                 }
                 if(eject_latch[i].src_x != cur_eject_src_x[i] || eject_latch[i].src_y != cur_eject_src_y[i] || eject_latch[i].src_z != cur_eject_src_z[i]){
                     printf("error in local unit (%d,%d,%d): tail mismatch with cur head flit: from (%d,%d,%d), whose dst is (%d,%d,%d), flit id is %d, packet id is %d\n", cur_x, cur_y, cur_z, eject_latch[i].src_x, eject_latch[i].src_y, eject_latch[i].src_z, eject_latch[i].dst_x, eject_latch[i].dst_y, eject_latch[i].dst_z, eject_latch[i].flit_id, eject_latch[i].packet_id);
-                    exit(-1);
+					return -1;
                 }
                 if(pattern[eject_latch[i].inject_dir - 1][eject_latch[i].src_z][eject_latch[i].src_y][eject_latch[i].src_x][eject_latch[i].packet_id].sent == false){
                     printf("error in local unit (%d,%d,%d): tail flit has not been sent yet: from (%d,%d,%d), whose dst is (%d,%d,%d), id is %d, packet id is %d\n", cur_x, cur_y, cur_z, eject_latch[i].src_x, eject_latch[i].src_y, eject_latch[i].src_z, eject_latch[i].dst_x, eject_latch[i].dst_y, eject_latch[i].dst_z, eject_latch[i].flit_id, eject_latch[i].packet_id);
-                    exit(-1);
+					return -1;
                 }
                 if(eject_flit_counter[i] + 1 != packet_size){
                     printf("error in local unit (%d,%d,%d): eject from %d, tail flit arrived but this packet is not complete: from (%d,%d,%d), whose dst is (%d,%d,%d), id is %d, packet id is %d, arrived flits: %d, expected flits: %d, inject dir is %d\n", i, cur_x, cur_y, cur_z, eject_latch[i].src_x, eject_latch[i].src_y, eject_latch[i].src_z, eject_latch[i].dst_x, eject_latch[i].dst_y, eject_latch[i].dst_z, eject_latch[i].flit_id, eject_latch[i].packet_id, eject_flit_counter[i] + 1, packet_size, eject_latch[i].inject_dir);
-                    exit(-1);
+					return -1;
                 }
 				if (eject_latch[i].flit_id != eject_flit_counter[i]){
 					printf("error in local unit (%d,%d,%d): tail flit id is not right: from (%d,%d,%d), whose dst is (%d,%d,%d), id is %d, packet id is %d, expected id is %d\n", cur_x, cur_y, cur_z, eject_latch[i].src_x, eject_latch[i].src_y, eject_latch[i].src_z, eject_latch[i].dst_x, eject_latch[i].dst_y, eject_latch[i].dst_z, eject_latch[i].flit_id, eject_latch[i].packet_id, eject_flit_counter[i]);
-					exit(-1);
+					return -1;
 				}
                 eject_flit_counter[i] = 0;
                 eject_pckt_counter[i]++;
@@ -127,22 +127,22 @@ void local_unit::consume(){
             else if(eject_latch[i].flit_type == SINGLE_FLIT){
                 if(eject_state[i] != EJECT_IDLE){
                     printf("error in local unit (%d,%d,%d): unexpected single flit from (%d,%d,%d), whose dst is (%d,%d,%d), flit id is %d, packet id is %d\n", cur_x, cur_y, cur_z, eject_latch[i].src_x, eject_latch[i].src_y, eject_latch[i].src_z, eject_latch[i].dst_x, eject_latch[i].dst_y, eject_latch[i].dst_z, eject_latch[i].flit_id, eject_latch[i].packet_id);
-                    exit(-1);
+					return -1;
                 }
                 if(eject_latch[i].dst_x != cur_x || eject_latch[i].dst_y != cur_y || eject_latch[i].dst_z != cur_z){
                     printf("error in local unit (%d,%d,%d): single flit arrives wrong dst: from (%d,%d,%d), whose dst is (%d,%d,%d), flit id is %d, packet id is %d\n", cur_x, cur_y, cur_z, eject_latch[i].src_x, eject_latch[i].src_y, eject_latch[i].src_z, eject_latch[i].dst_x, eject_latch[i].dst_y, eject_latch[i].dst_z, eject_latch[i].flit_id, eject_latch[i].packet_id);
-                    exit(-1);
+					return -1;
                 }
                 if(pattern[eject_latch[i].inject_dir - 1][eject_latch[i].src_z][eject_latch[i].src_y][eject_latch[i].src_x][eject_latch[i].packet_id].sent == false){
                     printf("error in local unit (%d,%d,%d): single flit has not been sent yet: from (%d,%d,%d), whose dst is (%d,%d,%d), id is %d, packet id is %d\n", cur_x, cur_y, cur_z, eject_latch[i].src_x, eject_latch[i].src_y, eject_latch[i].src_z, eject_latch[i].dst_x, eject_latch[i].dst_y, eject_latch[i].dst_z, eject_latch[i].flit_id, eject_latch[i].packet_id);
-                    exit(-1);
+					return -1;
                 }
                 if(packet_size != 1){
                     printf("error in local unit (%d,%d,%d): unexpected single flit, this pattern has not single flit, from (%d,%d,%d), whose dst is (%d,%d,%d), flit id is %d, packet id is %d\n", cur_x, cur_y, cur_z, eject_latch[i].src_x, eject_latch[i].src_y, eject_latch[i].src_z, eject_latch[i].dst_x, eject_latch[i].dst_y, eject_latch[i].dst_z, eject_latch[i].flit_id, eject_latch[i].packet_id);
                 }
 				if (eject_latch[i].flit_id != 0){
 					printf("error in local unit (%d,%d,%d): single flit id is not right: from (%d,%d,%d), whose dst is (%d,%d,%d), id is %d, packet id is %d, expected id is 0\n", cur_x, cur_y, cur_z, eject_latch[i].src_x, eject_latch[i].src_y, eject_latch[i].src_z, eject_latch[i].dst_x, eject_latch[i].dst_y, eject_latch[i].dst_z, eject_latch[i].flit_id, eject_latch[i].packet_id);
-					exit(-1);
+					return -1;
 				}
                 eject_pckt_counter[i]++;
                 pattern[eject_latch[i].inject_dir - 1][eject_latch[i].src_z][eject_latch[i].src_y][eject_latch[i].src_x][eject_latch[i].packet_id].rcvd = true;
@@ -154,6 +154,8 @@ void local_unit::consume(){
             }
         }
     }
+
+	return 0;
 
 }
 
@@ -173,9 +175,6 @@ void local_unit::produce(){
 			if (inject_control_counter[i] == packet_size && inject_avail_latch[i])
 				inject_pckt_counter[i]++;
 			inject_control_counter[i] = (inject_control_counter[i] <= injection_gap + packet_size) ? inject_control_counter[i] + 1 : 1;
-			
-			
-			
 		}
             if(inject_pckt_counter[i] < global_injection_packet_size[i][cur_z][cur_y][cur_x]){
 				

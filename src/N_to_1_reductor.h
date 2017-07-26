@@ -26,7 +26,7 @@ public:
     void alloc(int N_Fan_in);
     void N_to_1_reductor_init(int Out_dir, int Level, int Id, int Mode, flit** In_list, bool* Out_avail);
     void consume();
-    void produce();
+    int produce();
 	void N_to_1_reductor_free();
 };
 

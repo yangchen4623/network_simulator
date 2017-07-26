@@ -38,9 +38,9 @@ public:
     router internal_router;
  //   local_unit app_core;
 
-    void node_init(int Cur_x, int Cur_y, int Cur_z, flit* In_xpos, flit* In_ypos, flit* In_zpos, flit* In_xneg, flit* In_yneg, flit* In_zneg);
-    void consume();
-    void produce();
+	void node_init(int Cur_x, int Cur_y, int Cur_z, flit* In_xpos, flit* In_ypos, flit* In_zpos, flit* In_xneg, flit* In_yneg, flit* In_zneg, int Injection_mode, int Routing_mode, int Sa_mode, int Injection_gap, int Packet_size);
+    int consume();
+	int produce();
     void node_free();
     
 

@@ -26,20 +26,36 @@ int pos_or_neg(int src, int dst, int x_or_y_or_z){
 		return 2;
 
 	if (src > dst){
-		if (src - dst < size / 2)
-			ret = -1;
-		else if (src - dst > size / 2)
-			ret = 1;
-		else
-			ret = 0;
+		if (size % 2 == 0){
+			if (src - dst < size / 2)
+				ret = -1;
+			else if (src - dst > size / 2)
+				ret = 1;
+			else
+				ret = 0;
+		}
+		else{
+			if (src - dst <= size / 2)
+				ret = -1;
+			else
+				ret = 1;
+		}
 	}
 	else if (src < dst){
-		if (dst - src < size / 2)
-			ret = 1;
-		else if (dst - src > size / 2)
-			ret = -1;
-		else
-			ret = 0;
+		if (size % 2 == 0){
+			if (dst - src < size / 2)
+				ret = 1;
+			else if (dst - src > size / 2)
+				ret = -1;
+			else
+				ret = 0;
+		}
+		else{
+			if (dst - src <= size / 2)
+				ret = 1;
+			else
+				ret = -1;
+		}
 	}
 	else
 		ret = 2;
@@ -69,7 +85,7 @@ char comp_inject_dir(int src_x, int src_y, int src_z, int dst_x, int dst_y, int 
 		else if (z_dir == 1)
 			ret = DIR_ZPOS;
 		else{
-			int i = rand() % 2;
+			int i = 0;// rand() % 2;
 			if (i == 0)
 				ret = DIR_ZPOS;
 			else
@@ -84,7 +100,7 @@ char comp_inject_dir(int src_x, int src_y, int src_z, int dst_x, int dst_y, int 
 		else if (y_dir == 1)
 			ret = DIR_YPOS;
 		else{
-			int i = rand() % 2;
+			int i = 1;// rand() % 2;
 			if (i == 0)
 				ret = DIR_YPOS;
 			else
@@ -125,7 +141,7 @@ char comp_inject_dir(int src_x, int src_y, int src_z, int dst_x, int dst_y, int 
 						ret = DIR_XPOS;
 				}
 				else{
-					int i = 2;// rand() % 3;
+					int i = 1;// rand() % 3;
 					if (i == 0)
 						ret = DIR_YPOS;
 					else if (i == 1)
@@ -154,7 +170,7 @@ char comp_inject_dir(int src_x, int src_y, int src_z, int dst_x, int dst_y, int 
 						ret = DIR_XPOS;
 				}
 				else{
-					int i = 2;// rand() % 3;
+					int i = 0;// rand() % 3;
 					if (i == 0)
 						ret = DIR_ZPOS;
 					else if (i == 1)
@@ -165,7 +181,7 @@ char comp_inject_dir(int src_x, int src_y, int src_z, int dst_x, int dst_y, int 
 			}
 			else if (y_dir == 1 || y_dir == 0){//ypos is allowed
 				if (x_dir == -1){
-					int i = 0;// rand() % 3;
+					int i = 1;// rand() % 3;
 					if (i == 0)
 						ret = DIR_ZPOS;
 					else if (i == 1)
@@ -174,7 +190,7 @@ char comp_inject_dir(int src_x, int src_y, int src_z, int dst_x, int dst_y, int 
 						ret = DIR_XNEG;
 				}
 				else if (x_dir == 1){
-					int i = 1;// rand() % 3;
+					int i = 2;// rand() % 3;
 					if (i == 0)
 						ret = DIR_ZPOS;
 					else if (i == 1)
@@ -416,6 +432,63 @@ void gen_pattern_cube_nearest_neighbor(int pattern_size){ //each node multicast 
 
 }
 
+void gen_pattern_all_to_all(int pattern_size){ //each node multicast to 26 nearest neighbors
+	total_packet_sent = 0;
+	char cur_inject_dir;
+	for (int z = 0; z < ZSIZE; ++z){
+		for (int y = 0; y < YSIZE; ++y){
+			for (int x = 0; x < XSIZE; ++x){
+				for (int i = 0; i < PORT_NUM; ++i){
+					global_injection_packet_size[i][z][y][x] = 0;
+					if (!(pattern[i][z][y][x] = (packet*)malloc(XSIZE * YSIZE * ZSIZE * pattern_size * sizeof(packet)))){//worst case, all the packets are injected in a single injection port
+						printf("error when allocating space for pattern\n");
+						exit(-1);
+					}
+					for (int j = 0; j < XSIZE * YSIZE * ZSIZE * pattern_size; ++j){
+						pattern[i][z][y][x][j].valid = false;
+						pattern[i][z][y][x][j].rcvd = false;
+						pattern[i][z][y][x][j].sent = false;
+					}
+				}
+
+				for (int dst_z = - ZSIZE / 2; dst_z <= ceil(double(ZSIZE / 2)) - 1; ++dst_z){
+					for (int dst_y = -YSIZE / 2; dst_y <= ceil(double(YSIZE / 2)) - 1; ++dst_y){
+						for (int dst_x = -XSIZE / 2; dst_x <= ceil(double(XSIZE / 2)) - 1; ++dst_x){
+							for (int j = 0; j < pattern_size; ++j){
+								int real_dst_x = (x + dst_x < 0) ? (x + dst_x + XSIZE) : ((x + dst_x >= XSIZE) ? (x + dst_x - XSIZE) : (x + dst_x));
+								int real_dst_y = (y + dst_y < 0) ? (y + dst_y + YSIZE) : ((y + dst_y >= YSIZE) ? (y + dst_y - YSIZE) : (y + dst_y));
+								int real_dst_z = (z + dst_z < 0) ? (z + dst_z + ZSIZE) : ((z + dst_z >= ZSIZE) ? (z + dst_z - ZSIZE) : (z + dst_z));
+
+
+								cur_inject_dir = comp_inject_dir(x, y, z, real_dst_x, real_dst_y, real_dst_z);
+								if (cur_inject_dir != DIR_EJECT){
+									pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].inject_dir = cur_inject_dir;
+									pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].src_x = x;
+									pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].src_y = y;
+									pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].src_z = z;
+									pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].id = global_injection_packet_size[cur_inject_dir - 1][z][y][x];
+									pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].dst_x = real_dst_x;
+									pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].dst_y = real_dst_y;
+									pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].dst_z = real_dst_z;
+									pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].mahattan_dist = abs(dst_z) + abs(dst_y) + abs(dst_x);
+									pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].sent = false;
+									pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].rcvd = false;
+									pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].payload = global_injection_packet_size[cur_inject_dir - 1][z][y][x];
+									pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].valid = true;
+									global_injection_packet_size[cur_inject_dir - 1][z][y][x]++;
+									total_packet_sent++;
+								}
+
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+}
+
 
 bool count_sent_and_rcvd(){
     int cur_sent_num = 0;
@@ -493,14 +566,21 @@ void print_stats(){
 int main(){
 	srand((unsigned)time(NULL));
     int cycle_counter = 0;
-    int pattern_size = 10;
-	gen_pattern_cube_nearest_neighbor(pattern_size);
+    int pattern_size = 5;
+	int packet_size = 5; //has to be smaller than VC_SIZE
+	int injection_gap = 1;
+	gen_pattern_all_to_all(pattern_size);
 
     network network_UUT;
-    network_UUT.network_init(XSIZE, YSIZE, ZSIZE);
+	int max_VCs = 0;
+	network_UUT.network_init(XSIZE, YSIZE, ZSIZE, 0, ROUTING_ROMM, SA_OLDEST_FIRST, injection_gap, packet_size);
     while(1){
-        network_UUT.consume();
-		network_UUT.produce();
+		if (network_UUT.consume() == -1){
+			break;
+		}
+		if (network_UUT.produce() == -1){
+			break;
+		}
         cycle_counter++;
         if(cycle_counter % 1 ==0){
             printf("%dth cycle:\n",cycle_counter);
@@ -508,13 +588,15 @@ int main(){
                 break;
             }
         }
-		if (cycle_counter > 70000) {
-			print_unrcvd();
-			break;
+		if (cycle_counter % 100 == 0) {
+			int tmp = network_UUT.network_max_busy_VC_num();
+			if (tmp > max_VCs)
+				max_VCs = tmp;
+			printf("%dth cycle: max_VCs is %d \n", cycle_counter, tmp);
 		}
         
     }
     print_stats();
-
+	printf("overall max_VCs is %d\n", max_VCs);
     network_UUT.network_free();
 }

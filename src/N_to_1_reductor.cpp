@@ -92,7 +92,7 @@ void N_to_1_reductor::consume(){
 	
 }
 
-void N_to_1_reductor::produce(){
+int N_to_1_reductor::produce(){
 	cycle_counter++;
 	for (int i = 0; i < N_fan_in; ++i)
 		in_Q_inst[i].produce();
@@ -114,7 +114,7 @@ void N_to_1_reductor::produce(){
 			}//needs more code to implement mixed priority
 			if (in_slot[i].valid && cur_priority < 0){
 				printf("error!, neg priority\n");
-				exit(-1);
+				return -1;
 			}
 
 			if (in_slot[i].valid && (in_slot[i].flit_type == HEAD_FLIT || in_slot[i].flit_type == SINGLE_FLIT) && cur_priority > max){
@@ -171,7 +171,7 @@ void N_to_1_reductor::produce(){
 
 
 
-    return;
+    return 0;
 }
 
 void N_to_1_reductor::N_to_1_reductor_free(){

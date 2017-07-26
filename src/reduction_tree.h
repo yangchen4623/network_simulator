@@ -42,7 +42,7 @@ public:
     
     void reduction_tree_init(int N_Fan_in, int Out_dir, int Level_num, int Mode, int L1_N, int L2_N, int L3_N, flit** In_list, bool* Out_avail);
     void consume();
-    void produce();
+    int produce();
 	void reduction_tree_free();
 };
 
