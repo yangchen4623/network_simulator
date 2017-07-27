@@ -2,6 +2,7 @@
 
 flit::flit(){
 	valid = false;
+	O1TURN_id = -1;//initial to be O1TURN_id
 }
 
 flit::flit(bool Valid, char Type, int Payload, int Flit_id){

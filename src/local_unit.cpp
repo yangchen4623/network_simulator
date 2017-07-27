@@ -199,6 +199,7 @@ void local_unit::produce(){
 						inject[i].dst_x = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].dst_x;
 						inject[i].priority_dist = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].mahattan_dist;
 						inject[i].payload = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].payload;
+						inject[i].O1TURN_id = -1;
              //           inject_pckt_counter[i]++;
         
                     }
@@ -252,7 +253,7 @@ void local_unit::produce(){
                     inject[i].src_x = cur_x;
                     inject[i].src_y = cur_y;
                     inject[i].src_z = cur_z;
-					
+					inject[i].O1TURN_id = -1;
                     //inject[i].packet_size = pattern[i][cur_z][cur_y][cur_x][inject_pckt_counter[i]].packet_size;
 
                 //log the injected packet
