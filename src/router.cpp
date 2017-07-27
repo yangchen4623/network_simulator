@@ -42,7 +42,7 @@ void router::router_init(int Cur_x, int Cur_y, int Cur_z, int SA_Mode, int Routi
     for(int i = 0; i < PORT_NUM; ++i){
         flit_list_to_RC[i] = &(input_buffer_list[i].out);
         in_avail_from_VA[i] = &(VCs_list[i].in_avail);
-        RC_list[i].routing_comp_init(cur_x, cur_y, cur_z, i + 1, routing_mode, flit_list_to_RC[i], in_avail_from_VA[i]);
+        RC_list[i].routing_comp_init(cur_x, cur_y, cur_z, i + 1, routing_mode, flit_list_to_RC[i], in_avail_from_VA[i], &downstream_credits[0], &downstream_credits[1], &downstream_credits[2], &downstream_credits[3], &downstream_credits[4], &downstream_credits[5]);
     }
 
     for(int i = 0; i < PORT_NUM; ++i){

@@ -58,7 +58,9 @@ tail flit
 
 #define ROUTING_DOR_XYZ 0
 #define ROUTING_ROMM 1
-#define ROUTING_HEUR 2
+#define ROUTING_RCA 2
+#define ROUTING_O1TURN 3
+#define ROUTING RLB_XYZ 4
 
 #define VC_IDLE 0
 #define VC_WAITING_FOR_OVC 1

@@ -567,13 +567,13 @@ int main(){
 	srand((unsigned)time(NULL));
     int cycle_counter = 0;
     int pattern_size = 5;
-	int packet_size = 5; //has to be smaller than VC_SIZE
+	int packet_size = 10; //has to be smaller than VC_SIZE
 	int injection_gap = 1;
 	gen_pattern_all_to_all(pattern_size);
 
     network network_UUT;
 	int max_VCs = 0;
-	network_UUT.network_init(XSIZE, YSIZE, ZSIZE, 0, ROUTING_ROMM, SA_OLDEST_FIRST, injection_gap, packet_size);
+	network_UUT.network_init(XSIZE, YSIZE, ZSIZE, 0, ROUTING_O1TURN, SA_OLDEST_FIRST, injection_gap, packet_size);
     while(1){
 		if (network_UUT.consume() == -1){
 			break;
