@@ -39,6 +39,7 @@ public:
 	int ROMM(int input_dir, int cx, int cy, int cz, int dx, int dy, int dz);
 	int RCA(int input_dir, int cx, int cy, int cz, int dx, int dy, int dz);
 	int O1TURN(int input_dir, int cx, int cy, int cz, int dx, int dy, int dz, int O1TURN_id, int* init_id);
+	int RLB(int input_dir, int cx, int cy, int cz, int dx, int dy, int dz);
 
 };
 

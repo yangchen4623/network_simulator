@@ -732,6 +732,73 @@ int routing_comp::RCA(int input_dir, int cx, int cy, int cz, int dx, int dy, int
 
 }
 
+int pos_dist(int src, int dst, int size) {
+	if (src >= dst)
+		return size - src + dst;
+	else
+		return dst - src;
+}
+
+int neg_dist(int src, int dst, int size) {
+	if (src < dst)
+		return dst - src;
+	else
+		return size - dst + src;
+}
+
+int routing_comp::RLB(int input_dir, int cx, int cy, int cz, int dx, int dy, int dz) {
+	if (cx == dx && cy == dy && cz == dz) {
+		return DIR_EJECT;
+	}
+	if (cx != dx) {
+		if (input_dir != DIR_XPOS && input_dir != DIR_XNEG) {
+			int pos_distance = pos_dist(cx, dx, XSIZE);
+			int neg_distance = neg_dist(cx, dx, XSIZE);
+			int randnum = rand() % XSIZE;
+			if (randnum <= pos_distance) {
+				return DIR_XNEG;
+			}
+			else
+				return DIR_XPOS;
+
+		}
+		else {
+			return input_dir > 3 ? input_dir - 3 : input_dir + 3;
+		}
+	}
+	else if (cy != dy) {
+		if (input_dir != DIR_YPOS && input_dir != DIR_YNEG) {
+			int pos_distance = pos_dist(cy, dy, YSIZE);
+			int neg_distance = neg_dist(cy, dy, YSIZE);
+			int randnum = rand() % YSIZE;
+			if (randnum <= pos_distance) {
+				return DIR_YNEG;
+			}
+			else
+				return DIR_YPOS;
+		}
+		else {
+			return input_dir > 3 ? input_dir - 3 : input_dir + 3;
+		}
+	}
+	else {
+		if (input_dir != DIR_ZPOS && input_dir != DIR_ZNEG) {
+			int pos_distance = pos_dist(cz, dz, ZSIZE);
+			int neg_distance = neg_dist(cz, dz, ZSIZE);
+			int randnum = rand() % ZSIZE;
+			if (randnum <= pos_distance) {
+				return DIR_ZNEG;
+			}
+			else
+				return DIR_ZPOS;
+		}
+		else {
+			return input_dir > 3 ? input_dir - 3 : input_dir + 3;
+		}
+	}
+
+}
+
 
 void routing_comp::produce(){
     //compute the routing decision first no matter stall or not
