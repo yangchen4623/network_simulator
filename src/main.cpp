@@ -432,6 +432,27 @@ void gen_pattern_cube_nearest_neighbor(int pattern_size){ //each node multicast 
 
 }
 
+void gen_pattern_bitrev(int pattern_size) {
+	total_packet_sent = 0;
+	char cur_inject_dir;
+	for (int z = 0; z < ZSIZE; ++z) {
+		for (int y = 0; y < YSIZE; ++y) {
+			for (int x = 0; x < XSIZE; ++x) {
+				for (int i = 0; i < PORT_NUM; ++i) {
+					global_injection_packet_size[i][z][y][x] = 0;
+					if (!(pattern[i][z][y][x] = (packet*)malloc(pattern_size * sizeof(packet)))) {//worst case, all the packets are injected in a single injection port
+						printf("error when allocating space for pattern\n");
+						exit(-1);
+					}
+					for (int j = 0; j < pattern_size; ++j) {
+						pattern[i][z][y][x][j].valid = false;
+						pattern[i][z][y][x][j].rcvd = false;
+						pattern[i][z][y][x][j].sent = false;
+					}
+				}
+				int dst_z = 
+}
+
 void gen_pattern_all_to_all(int pattern_size){ //each node multicast to 26 nearest neighbors
 	total_packet_sent = 0;
 	char cur_inject_dir;
