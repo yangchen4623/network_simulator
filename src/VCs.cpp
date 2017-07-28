@@ -56,6 +56,36 @@ void VCs::consume(){
                 grant = 0;
         }
     }
+	//*** this piece of code below might not work
+	//allocate to the active VC still has space
+//	if (grant == 0){
+//		if (in->valid && (in->flit_type == HEAD_FLIT || in->flit_type == SINGLE_FLIT)){//allocate this flit to next available idle VC
+//			if (!(in->VC_class)){
+//				for (i = 0; i < VC_NUM - 1; ++i){
+//					if (VC_array[i].in_avail){
+//						grant = (1 << i);
+//						break;
+//					}
+//				}
+//				if (i == VC_NUM - 1)
+//					grant = 0;
+//			}
+//			else{
+//				for (i = 1; i < VC_NUM; ++i){
+//					if (VC_array[i].in_avail){
+//						grant = (1 << i);
+//						break;
+//					}
+//				}
+//				if (i == VC_NUM)
+//					grant = 0;
+//			}
+//		}
+
+
+//	}
+	//*** this piece of code above might not work
+
     if(grant != 0){
         int grant_index = (int)(log2((double)grant));
         if(in->valid && VC_array[grant_index].in_avail){

@@ -825,6 +825,10 @@ void routing_comp::produce(){
 				in_latch.O1TURN_id = new_path_id;
 		}
 	}
+	else if (mode == ROUTING_RLB_XYZ){
+		if (in_latch.valid && (in_latch.flit_type == HEAD_FLIT || in_latch.flit_type == SINGLE_FLIT))
+			dir = RLB(dir_in, cur_x, cur_y, cur_z, in_latch.dst_x, in_latch.dst_y, in_latch.dst_z);
+	}
 
     bool new_VC_class; 
     //the VC_class needs to be changed when either crossing the dateline or changing dimension
@@ -834,41 +838,42 @@ void routing_comp::produce(){
 			new_VC_class = 0;
 		else
 			new_VC_class = 1;
+		
 	}
     else{
         switch(dir){
             case DIR_XPOS:
-                if(cur_x == XSIZE - 1)
+                if(cur_x == 0)
                     new_VC_class = 1;
                 else
                     new_VC_class = old_VC_class;
                 break;
             case DIR_XNEG:
-                if(cur_x == 0)
+                if(cur_x == XSIZE - 1)
                     new_VC_class = 0;
                 else
                     new_VC_class = old_VC_class;
                 break;
             case DIR_YPOS:
-                if(cur_y == YSIZE - 1)
+                if(cur_y == 0)
                     new_VC_class = 1;
                 else
                     new_VC_class = old_VC_class;
                 break;
             case DIR_YNEG:
-                if(cur_y == 0)
+                if(cur_y == YSIZE - 1)
                     new_VC_class = 0;
                 else
                     new_VC_class = old_VC_class;
 				break;            
             case DIR_ZPOS:
-                if(cur_z == ZSIZE - 1)
+                if(cur_z == 0)
                     new_VC_class = 1;
                 else 
                     new_VC_class = old_VC_class;
                 break;
             case DIR_ZNEG:
-                if(cur_z == 0)
+                if(cur_z == ZSIZE - 1)
                     new_VC_class = 0;
                 else
                     new_VC_class = old_VC_class;
@@ -880,14 +885,18 @@ void routing_comp::produce(){
     if(eject_enable == 0 && in_latch.valid && dir == DIR_EJECT && (in_latch.flit_type == HEAD_FLIT || in_latch.flit_type == SINGLE_FLIT)){
         eject_enable = true;
     }
-    if(eject_enable){
-        flit_eject = in_latch;
-        in_avail = true;
-        flit_after_RC.valid = false;
-        out.valid = false;
-        if(in_latch.valid && (in_latch.flit_type == SINGLE_FLIT || in_latch.flit_type == TAIL_FLIT))
-            eject_enable = false;
-        return;
+	if (eject_enable){
+
+			flit_eject = in_latch;
+			in_avail = true;
+			flit_after_RC.valid = false;
+			out.valid = false;
+			if (in_latch.valid && (in_latch.flit_type == SINGLE_FLIT || in_latch.flit_type == TAIL_FLIT))
+				eject_enable = false;
+
+			if (!out_avail_latch)
+				flit_eject.valid = false;
+			return;
     }
 //not eject_enable, the traffic is bypass
 	flit_eject.valid = false;

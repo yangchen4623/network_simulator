@@ -109,9 +109,15 @@ int N_to_1_reductor::produce(){
 			if (mode == SA_FARTHEST_FIRST){
 				cur_priority = in_slot[i].priority_dist;
 			}
-			else{
+			else if (mode == SA_OLDEST_FIRST){
 				cur_priority = cycle_counter - in_slot[i].priority_age;
 			}//needs more code to implement mixed priority
+			else if (mode == SA_MIXED)
+			{
+				cur_priority = in_slot[i].priority_dist;
+			}
+
+
 			if (in_slot[i].valid && cur_priority < 0){
 				printf("error!, neg priority\n");
 				return -1;
@@ -120,6 +126,12 @@ int N_to_1_reductor::produce(){
 			if (in_slot[i].valid && (in_slot[i].flit_type == HEAD_FLIT || in_slot[i].flit_type == SINGLE_FLIT) && cur_priority > max){
 				selector = i;
 				max = cur_priority;
+			}
+			if (mode == SA_MIXED){
+				if (in_slot[i].valid && (in_slot[i].flit_type == HEAD_FLIT || in_slot[i].flit_type == SINGLE_FLIT) && cycle_counter - in_slot[i].priority_age > SA_AGE_THRESHOLD){
+					selector = i;
+					break;
+				}
 			}
 		}
 	}

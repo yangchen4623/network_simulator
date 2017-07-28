@@ -490,7 +490,7 @@ void gen_pattern_all_to_all(int pattern_size){ //each node multicast to 26 neare
 }
 
 
-bool count_sent_and_rcvd(){
+bool count_sent_and_rcvd(int *send_num, int* packet_num){
     int cur_sent_num = 0;
     int cur_rcvd_num = 0;
     for(int i = 0; i < PORT_NUM; ++i){
@@ -507,6 +507,8 @@ bool count_sent_and_rcvd(){
             }
         }    
     }
+	*send_num = cur_sent_num;
+	*packet_num = cur_rcvd_num;
     printf("total %d pckts, sent %d pckts, rcvd %d pckts\n", total_packet_sent, cur_sent_num, cur_rcvd_num);
     return cur_rcvd_num == total_packet_sent;
 }
@@ -535,7 +537,7 @@ bool print_unrcvd() {
 	return cur_rcvd_num == total_packet_sent;
 }
 
-void print_stats(){
+void print_stats(int total_latency){
     int packet_counter = 0;
     float avg_latency = 0;
     int worst_case_latency = 0;
@@ -558,7 +560,7 @@ void print_stats(){
             }
         }    
     }
-	printf("among %d packets, avg latency is %f cycles, worst case packet takes %d cycles\n", packet_counter, avg_latency, worst_case_latency);
+	printf("among %d packets, total latency is %d, avg latency is %f cycles, worst case packet takes %d cycles\n", packet_counter, total_latency, avg_latency, worst_case_latency);
 	printf("worst packet from (%d, %d, %d) to (%d, %d, %d), packet id is %d\n", worst_case_packet.src_x, worst_case_packet.src_y, worst_case_packet.src_z, worst_case_packet.dst_x, worst_case_packet.dst_y, worst_case_packet.dst_z, worst_case_packet.id);
 }
 
@@ -566,14 +568,20 @@ void print_stats(){
 int main(){
 	srand((unsigned)time(NULL));
     int cycle_counter = 0;
-    int pattern_size = 5;
+    int pattern_size = 10;
 	int packet_size = 10; //has to be smaller than VC_SIZE
-	int injection_gap = 1;
+	int injection_gap = 3;
 	gen_pattern_all_to_all(pattern_size);
 
     network network_UUT;
 	int max_VCs = 0;
-	network_UUT.network_init(XSIZE, YSIZE, ZSIZE, 0, ROUTING_O1TURN, SA_OLDEST_FIRST, injection_gap, packet_size);
+	double max_thruput = 0;
+	double max_sent_thruput = 0;
+	int pre_sent_counter = 0;
+	int cur_sent_counter = 0;
+	int pre_packet_counter = 0;
+	int cur_packet_counter = 0;
+	network_UUT.network_init(XSIZE, YSIZE, ZSIZE, 0, ROUTING_DOR_XYZ, SA_OLDEST_FIRST, injection_gap, packet_size);
     while(1){
 		if (network_UUT.consume() == -1){
 			break;
@@ -584,19 +592,27 @@ int main(){
         cycle_counter++;
         if(cycle_counter % 1 ==0){
             printf("%dth cycle:\n",cycle_counter);
-            if(count_sent_and_rcvd()){
+			if (count_sent_and_rcvd(&cur_sent_counter, &cur_packet_counter)){
                 break;
             }
         }
 		if (cycle_counter % 100 == 0) {
+			double sent_thruput = ((cur_sent_counter - pre_sent_counter) / 100.0) * packet_size / (XSIZE * YSIZE * ZSIZE);
+			double thruput = ((cur_packet_counter - pre_packet_counter) / 100.0) * packet_size / (XSIZE * YSIZE * ZSIZE);
 			int tmp = network_UUT.network_max_busy_VC_num();
 			if (tmp > max_VCs)
 				max_VCs = tmp;
-			printf("%dth cycle: max_VCs is %d \n", cycle_counter, tmp);
+			if (thruput > max_thruput)
+				max_thruput = thruput;
+			if (sent_thruput > max_sent_thruput)
+				max_sent_thruput = sent_thruput;
+			printf("%dth cycle: max_VCs is %d, thruput is %f\n", cycle_counter, tmp, thruput);
+			pre_packet_counter = cur_packet_counter;
+			pre_sent_counter = cur_sent_counter;
 		}
         
     }
-    print_stats();
-	printf("overall max_VCs is %d\n", max_VCs);
+    print_stats(cycle_counter);
+	printf("overall max_VCs is %d,offered thruput is %f flits/node/cycle, max sent thruput is %f flits/node/cycle, max thruput is %f flits/node/cycle\n", max_VCs, (double)(packet_size * 6) / (packet_size + injection_gap), max_sent_thruput, max_thruput);
     network_UUT.network_free();
 }
