@@ -6,9 +6,9 @@
 #define IN_Q_SIZE 512
 #define VC_SIZE 16 // has to bigger than PACKET_SIZE
 #define VC_NUM 9
-#define XSIZE 4
-#define YSIZE 4
-#define ZSIZE 4
+#define XSIZE 8
+#define YSIZE 8
+#define ZSIZE 8
 #define XW 3
 #define YW 3
 #define ZW 3
@@ -56,6 +56,8 @@ tail flit
 #define ERR_PCKT_TIMEOUT 4
 #define ERR_PCKT_WRONG 5
 
+
+#define ROUTING_MODE_NUM 5
 #define ROUTING_DOR_XYZ 0
 #define ROUTING_ROMM 1
 #define ROUTING_RCA 2
@@ -67,6 +69,8 @@ tail flit
 #define VC_ACTIVE 2
 #define VC_WAITING_FOR_CREDITS 3
 
+
+#define SA_MODE_NUM 3
 #define SA_FARTHEST_FIRST 0
 #define SA_OLDEST_FIRST 1
 #define SA_MIXED 2

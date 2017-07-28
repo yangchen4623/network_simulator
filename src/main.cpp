@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <math.h>
 #include <time.h>
+#include <string>
+#include <fstream>
 
 int global_injection_packet_size[PORT_NUM][ZSIZE][YSIZE][XSIZE];
 packet* pattern[PORT_NUM][ZSIZE][YSIZE][XSIZE];
@@ -220,7 +222,7 @@ char comp_inject_dir(int src_x, int src_y, int src_z, int dst_x, int dst_y, int 
 
 
 int total_packet_sent = 0;
-void gen_pattern_nearest_neighbor(int pattern_size){
+int gen_pattern_nearest_neighbor(int pattern_size){
     //pattern size means the number of packets of each pair of nodes in the pattern
     total_packet_sent = 0;
     for(int i = 0; i < PORT_NUM; ++i){
@@ -280,9 +282,10 @@ void gen_pattern_nearest_neighbor(int pattern_size){
         }
         
     }
+	return 6;
 }
 
-void gen_pattern_three_hop_diagonal(int pattern_size){
+int gen_pattern_three_hop_diagonal(int pattern_size){
 	total_packet_sent = 0;
 	for (int i = 0; i < PORT_NUM; ++i){
 		for (int j = 0; j < ZSIZE; ++j){
@@ -373,10 +376,16 @@ void gen_pattern_three_hop_diagonal(int pattern_size){
 
 	}
 
+	return 4;
+
 }
 
-void gen_pattern_cube_nearest_neighbor(int pattern_size){ //each node multicast to 26 nearest neighbors
+int gen_pattern_cube_nearest_neighbor(int pattern_size){ //each node multicast to 26 nearest neighbors
 	total_packet_sent = 0;
+	bool port_used[PORT_NUM];
+	for (int ii = 0; ii < PORT_NUM; ++ii){
+		port_used[ii] = false;
+	}
 	char cur_inject_dir;
 	for (int z = 0; z < ZSIZE; ++z){
 		for (int y = 0; y < YSIZE; ++y){
@@ -404,6 +413,7 @@ void gen_pattern_cube_nearest_neighbor(int pattern_size){ //each node multicast 
 								
 
 								cur_inject_dir = comp_inject_dir(x, y, z, real_dst_x, real_dst_y, real_dst_z);
+								port_used[cur_inject_dir - 1] = true;
 								if (cur_inject_dir != DIR_EJECT){
 									pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].inject_dir = cur_inject_dir;
 									pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].src_x = x;
@@ -430,11 +440,24 @@ void gen_pattern_cube_nearest_neighbor(int pattern_size){ //each node multicast 
 		}
 	}
 
+	int port_used_counter = 0;
+	for (int jj = 0; jj < PORT_NUM; ++jj){
+		if (port_used[jj])
+			port_used_counter++;
+	}
+	return port_used_counter;
+
 }
 
-void gen_pattern_bitrev(int pattern_size) {
+
+
+int gen_pattern_bitcomplement(int pattern_size) {
 	total_packet_sent = 0;
 	char cur_inject_dir;
+	bool port_used[PORT_NUM];
+	for (int ii = 0; ii < PORT_NUM; ++ii){
+		port_used[ii] = false;
+	}
 	for (int z = 0; z < ZSIZE; ++z) {
 		for (int y = 0; y < YSIZE; ++y) {
 			for (int x = 0; x < XSIZE; ++x) {
@@ -450,12 +473,155 @@ void gen_pattern_bitrev(int pattern_size) {
 						pattern[i][z][y][x][j].sent = false;
 					}
 				}
-				int dst_z = 
+				int dst_z = ZSIZE - 1 - z;
+				int dst_y = YSIZE - 1 - y;
+				int dst_x = XSIZE - 1 - x;
+				cur_inject_dir = comp_inject_dir(x, y, z, dst_x, dst_y, dst_z);
+				port_used[cur_inject_dir - 1] = true;
+				for (int j = 0; j < pattern_size; ++j){
+					if (cur_inject_dir != DIR_EJECT){
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].inject_dir = cur_inject_dir;
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].src_x = x;
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].src_y = y;
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].src_z = z;
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].id = global_injection_packet_size[cur_inject_dir - 1][z][y][x];
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].dst_x = dst_x;
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].dst_y = dst_y;
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].dst_z = dst_z;
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].mahattan_dist = abs(dst_z) + abs(dst_y) + abs(dst_x);
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].sent = false;
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].rcvd = false;
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].payload = global_injection_packet_size[cur_inject_dir - 1][z][y][x];
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].valid = true;
+						global_injection_packet_size[cur_inject_dir - 1][z][y][x]++;
+						total_packet_sent++;
+
+					}
+				}
+			}
+		}
+	}
+	int port_used_counter = 0;
+	for (int jj = 0; jj < PORT_NUM; ++jj){
+		if (port_used[jj])
+			port_used_counter++;
+	}
+	return 1;
+
 }
 
-void gen_pattern_all_to_all(int pattern_size){ //each node multicast to 26 nearest neighbors
+
+int gen_pattern_transpose(int pattern_size) {
 	total_packet_sent = 0;
 	char cur_inject_dir;
+
+	for (int z = 0; z < ZSIZE; ++z) {
+		for (int y = 0; y < YSIZE; ++y) {
+			for (int x = 0; x < XSIZE; ++x) {
+				for (int i = 0; i < PORT_NUM; ++i) {
+					global_injection_packet_size[i][z][y][x] = 0;
+					if (!(pattern[i][z][y][x] = (packet*)malloc(pattern_size * sizeof(packet)))) {//worst case, all the packets are injected in a single injection port
+						printf("error when allocating space for pattern\n");
+						exit(-1);
+					}
+					for (int j = 0; j < pattern_size; ++j) {
+						pattern[i][z][y][x][j].valid = false;
+						pattern[i][z][y][x][j].rcvd = false;
+						pattern[i][z][y][x][j].sent = false;
+					}
+				}
+				int dst_z = x;
+				int dst_y = z;
+				int dst_x = y;
+				cur_inject_dir = comp_inject_dir(x, y, z, dst_x, dst_y, dst_z);
+				for (int j = 0; j < pattern_size; ++j){
+					if (cur_inject_dir != DIR_EJECT){
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].inject_dir = cur_inject_dir;
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].src_x = x;
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].src_y = y;
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].src_z = z;
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].id = global_injection_packet_size[cur_inject_dir - 1][z][y][x];
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].dst_x = dst_x;
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].dst_y = dst_y;
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].dst_z = dst_z;
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].mahattan_dist = abs(dst_z) + abs(dst_y) + abs(dst_x);
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].sent = false;
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].rcvd = false;
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].payload = global_injection_packet_size[cur_inject_dir - 1][z][y][x];
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].valid = true;
+						global_injection_packet_size[cur_inject_dir - 1][z][y][x]++;
+						total_packet_sent++;
+
+					}
+				}
+			}
+		}
+	}
+	int port_used_counter = 0;
+
+	return 1;
+
+}
+
+int gen_pattern_tornado(int pattern_size) {
+	total_packet_sent = 0;
+	char cur_inject_dir;
+
+	for (int z = 0; z < ZSIZE; ++z) {
+		for (int y = 0; y < YSIZE; ++y) {
+			for (int x = 0; x < XSIZE; ++x) {
+				for (int i = 0; i < PORT_NUM; ++i) {
+					global_injection_packet_size[i][z][y][x] = 0;
+					if (!(pattern[i][z][y][x] = (packet*)malloc(pattern_size * sizeof(packet)))) {//worst case, all the packets are injected in a single injection port
+						printf("error when allocating space for pattern\n");
+						exit(-1);
+					}
+					for (int j = 0; j < pattern_size; ++j) {
+						pattern[i][z][y][x][j].valid = false;
+						pattern[i][z][y][x][j].rcvd = false;
+						pattern[i][z][y][x][j].sent = false;
+					}
+				}
+				int dst_z = z;
+				int dst_y = y;
+				int dst_x = (x + XSIZE / 2 >= XSIZE) ? (x + XSIZE / 2 - XSIZE) : (x + XSIZE / 2);
+				cur_inject_dir = comp_inject_dir(x, y, z, dst_x, dst_y, dst_z);
+				for (int j = 0; j < pattern_size; ++j){
+					if (cur_inject_dir != DIR_EJECT){
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].inject_dir = cur_inject_dir;
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].src_x = x;
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].src_y = y;
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].src_z = z;
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].id = global_injection_packet_size[cur_inject_dir - 1][z][y][x];
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].dst_x = dst_x;
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].dst_y = dst_y;
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].dst_z = dst_z;
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].mahattan_dist = abs(dst_z) + abs(dst_y) + abs(dst_x);
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].sent = false;
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].rcvd = false;
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].payload = global_injection_packet_size[cur_inject_dir - 1][z][y][x];
+						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].valid = true;
+						global_injection_packet_size[cur_inject_dir - 1][z][y][x]++;
+						total_packet_sent++;
+
+					}
+				}
+			}
+		}
+	}
+	int port_used_counter = 0;
+
+	return 1;
+
+}
+
+int gen_pattern_all_to_all(int pattern_size){ //each node multicast to 26 nearest neighbors
+	total_packet_sent = 0;
+	char cur_inject_dir;
+	bool port_used[PORT_NUM];
+	for (int ii = 0; ii < PORT_NUM; ++ii){
+		port_used[ii] = false;
+	}
 	for (int z = 0; z < ZSIZE; ++z){
 		for (int y = 0; y < YSIZE; ++y){
 			for (int x = 0; x < XSIZE; ++x){
@@ -482,6 +648,7 @@ void gen_pattern_all_to_all(int pattern_size){ //each node multicast to 26 neare
 
 
 								cur_inject_dir = comp_inject_dir(x, y, z, real_dst_x, real_dst_y, real_dst_z);
+								port_used[cur_inject_dir - 1] = true;
 								if (cur_inject_dir != DIR_EJECT){
 									pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].inject_dir = cur_inject_dir;
 									pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].src_x = x;
@@ -507,6 +674,12 @@ void gen_pattern_all_to_all(int pattern_size){ //each node multicast to 26 neare
 			}
 		}
 	}
+	int port_used_counter = 0;
+	for (int jj = 0; jj < PORT_NUM; ++jj){
+		if (port_used[jj])
+			port_used_counter++;
+	}
+	return port_used_counter;
 
 }
 
@@ -558,11 +731,30 @@ bool print_unrcvd() {
 	return cur_rcvd_num == total_packet_sent;
 }
 
-void print_stats(int total_latency){
+int count_packet(){
+	int packet_counter = 0;
+	for (int i = 0; i < PORT_NUM; ++i){
+		for (int j = 0; j < ZSIZE; ++j){
+			for (int k = 0; k < YSIZE; ++k){
+				for (int m = 0; m < XSIZE; ++m){
+					for (int n = 0; n < global_injection_packet_size[i][j][k][m]; ++n){
+						if (pattern[i][j][k][m][n].valid){
+							packet_counter++;
+						}
+					}
+				}
+			}
+		}
+	}
+	return packet_counter;
+}
+
+void print_stats(int total_latency, float* Avg_latency, int* Worst_case_latency, std::string* Worst_case_packet_info){
     int packet_counter = 0;
     float avg_latency = 0;
     int worst_case_latency = 0;
 	packet worst_case_packet;
+	char worst_case_packet_info[100];
     for(int i = 0; i < PORT_NUM; ++i){
 		for (int j = 0; j < ZSIZE; ++j){
             for(int k = 0; k < YSIZE; ++k){
@@ -582,58 +774,177 @@ void print_stats(int total_latency){
         }    
     }
 	printf("among %d packets, total latency is %d, avg latency is %f cycles, worst case packet takes %d cycles\n", packet_counter, total_latency, avg_latency, worst_case_latency);
-	printf("worst packet from (%d, %d, %d) to (%d, %d, %d), packet id is %d\n", worst_case_packet.src_x, worst_case_packet.src_y, worst_case_packet.src_z, worst_case_packet.dst_x, worst_case_packet.dst_y, worst_case_packet.dst_z, worst_case_packet.id);
+	sprintf(worst_case_packet_info, "worst packet from (%d, %d, %d) to (%d, %d, %d), packet id is %d\n", worst_case_packet.src_x, worst_case_packet.src_y, worst_case_packet.src_z, worst_case_packet.dst_x, worst_case_packet.dst_y, worst_case_packet.dst_z, worst_case_packet.id);
+	
+	
+	*Avg_latency = avg_latency;
+	*Worst_case_latency = worst_case_latency;
+	*Worst_case_packet_info = std::string(worst_case_packet_info);
 }
 
 
-int main(){
+int main(int argc, char* argv[]){
+
+	if (argc != 9){
+		printf("how to use: ./sim -i [pattern id] -s [pattern size] -p [packet size] -g [injection_gap]");
+		printf("id list: 0: nearest neighbor\n \
+			   1: three-hop diagonal nearest neighbor\n \
+			   2: cube nearest neighbor\n \
+			   3: bit complement\n \
+			   4: transpose\n \
+			   5: tornado\n \
+			   6: all_to_all\n \
+			   recommend packet size smaller than VC_size");
+		exit(-1);
+	}
+	
+	int pattern_id = atoi(argv[2]);
+	int pattern_size = atoi(argv[4]);
+	int packet_size = atoi(argv[6]);
+	if (packet_size > VC_SIZE){
+		printf("Waring! if packet size is bigger than VC size, the performance will significantly drop\n");
+	}
+	int injection_gap = atoi(argv[8]);
+
+	
+	std::string common_path = "/home/jysheng/Documents/dynamic_router_sim/";
+	std::string pattern_path[7];
+	pattern_path[0] = "NN";
+	pattern_path[1] = "3H_NN";
+	pattern_path[2] = "CUBE_NN";
+	pattern_path[3] = "bit_complement";
+	pattern_path[4] = "transpose";
+	pattern_path[5] = "tornado";
+	pattern_path[6] = "all_to_all";
+
+	std::string selected_pattern_path = pattern_path[pattern_id];
+
+	std::string filename = selected_pattern_path + "_" + argv[2] + "_" + argv[4] + "_" + argv[6] + ".txt";
+
+	std::string output_path = common_path + selected_pattern_path + "/" + filename;
+	
+	std::ofstream fout;
+	fout.open(output_path);
+
+	
+	int port_used_num = 0;
+	if (pattern_id == 0){
+		port_used_num = gen_pattern_nearest_neighbor(pattern_size);
+	}
+	else if (pattern_id == 1){
+		port_used_num = gen_pattern_three_hop_diagonal(pattern_size);
+	}
+	else if (pattern_id == 2){
+		port_used_num = gen_pattern_cube_nearest_neighbor(pattern_size);
+	}
+	else if (pattern_id == 3){
+		port_used_num = gen_pattern_bitcomplement(pattern_size);
+	}
+	else if (pattern_id == 4){
+		port_used_num = gen_pattern_transpose(pattern_size);
+	}
+	else if (pattern_id == 5){
+		port_used_num = gen_pattern_tornado(pattern_size);
+	}
+	else if (pattern_id == 6){
+		port_used_num = gen_pattern_all_to_all(pattern_size);
+	}
+
+
 	srand((unsigned)time(NULL));
     int cycle_counter = 0;
-    int pattern_size = 10;
-	int packet_size = 10; //has to be smaller than VC_SIZE
-	int injection_gap = 3;
-	gen_pattern_all_to_all(pattern_size);
+	
+	for (int routing_mode_i = 0; routing_mode_i < ROUTING_MODE_NUM; routing_mode_i++){
+		for (int SA_mode_j = 0; SA_mode_j < SA_MODE_NUM; SA_mode_j++){
+			//result list:
+			int max_VCs = 0;
+			int total_packet_num = count_packet();
 
-    network network_UUT;
-	int max_VCs = 0;
-	double max_thruput = 0;
-	double max_sent_thruput = 0;
-	int pre_sent_counter = 0;
-	int cur_sent_counter = 0;
-	int pre_packet_counter = 0;
-	int cur_packet_counter = 0;
-	network_UUT.network_init(XSIZE, YSIZE, ZSIZE, 0, ROUTING_DOR_XYZ, SA_OLDEST_FIRST, injection_gap, packet_size);
-    while(1){
-		if (network_UUT.consume() == -1){
-			break;
+			int total_latency;
+			float avg_latency;
+			int worst_case_latency;
+			std::string worst_case_packet_info;
+
+
+
+			int check_period = 2 * injection_gap > 100 ? 2 * injection_gap : 100;
+
+			
+			network network_UUT;
+			
+			double max_thruput = 0;
+			double max_sent_thruput = 0;
+			double avg_sent_thruput = 0;
+			double avg_rcvd_thruput = 0;
+			int all_sent_stamp = 0;
+			bool all_sent = false;
+			bool start_rcvd = false;
+			int start_rcvd_stamp = 0;
+			int pre_sent_counter = 0;
+			int cur_sent_counter = 0;
+			int pre_packet_counter = 0;
+			int pre_rcvd_counter = 0;
+			int cur_packet_counter = 0;
+			network_UUT.network_init(XSIZE, YSIZE, ZSIZE, 0, ROUTING_RLB_XYZ, SA_OLDEST_FIRST, injection_gap, packet_size);
+			while (1){
+				if (network_UUT.consume() == -1){
+					break;
+				}
+				if (network_UUT.produce() == -1){
+					break;
+				}
+
+				if (cycle_counter % 1 == 0){
+					printf("%dth cycle:\n", cycle_counter);
+					if (count_sent_and_rcvd(&cur_sent_counter, &cur_packet_counter)){
+						break;
+					}
+				}
+				if (cur_sent_counter == total_packet_num){
+					all_sent_stamp = cycle_counter;
+					all_sent = true;
+				}
+				if ((cur_packet_counter > 0) && (pre_rcvd_counter == 0)){
+
+
+					start_rcvd_stamp = cycle_counter;
+				}
+
+				if (cycle_counter % check_period == 0) {
+					double sent_thruput = ((cur_sent_counter - pre_sent_counter) / (double)check_period) * packet_size / (XSIZE * YSIZE * ZSIZE);
+					double thruput = ((cur_packet_counter - pre_packet_counter) / (double)check_period) * packet_size / (XSIZE * YSIZE * ZSIZE);
+					int tmp = network_UUT.network_max_busy_VC_num();
+					if (tmp > max_VCs)
+						max_VCs = tmp;
+					if (thruput > max_thruput)
+						max_thruput = thruput;
+					if (sent_thruput > max_sent_thruput)
+						max_sent_thruput = sent_thruput;
+					printf("%dth cycle: max_VCs is %d, thruput is %f\n", cycle_counter, tmp, thruput);
+					pre_packet_counter = cur_packet_counter;
+					pre_sent_counter = cur_sent_counter;
+				}
+				if (cycle_counter == 10000){
+					printf("10K cycles has been simulated, stop\n");
+					if (!all_sent){
+						all_sent_stamp = cycle_counter;
+					}
+					break;
+				}
+				pre_rcvd_counter = cur_packet_counter;
+				cycle_counter++;
+			}
+			avg_sent_thruput = (double)cur_sent_counter * (double)packet_size / all_sent_stamp / (XSIZE * YSIZE * ZSIZE);
+			avg_rcvd_thruput = (double)cur_packet_counter * (double)packet_size / (cycle_counter - start_rcvd_stamp) / (XSIZE * YSIZE * ZSIZE);
+			print_stats(cycle_counter, &avg_latency, &worst_case_latency, &worst_case_packet_info);
+			printf("overall max_VCs is %d,port_used %d, offered thruput is %f flits/node/cycle, max sent thruput is %f flits/node/cycle, max thruput is %f flits/node/cycle\n", max_VCs, port_used_num, (double)(packet_size * port_used_num) / (packet_size + injection_gap), max_sent_thruput, max_thruput);
+			printf("avg sent thruput is %f flits/node/cycle, avg rcvd thruput is %f flits/node/cycle\n", avg_sent_thruput, avg_rcvd_thruput);
+			network_UUT.network_free();
 		}
-		if (network_UUT.produce() == -1){
-			break;
-		}
-        cycle_counter++;
-        if(cycle_counter % 1 ==0){
-            printf("%dth cycle:\n",cycle_counter);
-			if (count_sent_and_rcvd(&cur_sent_counter, &cur_packet_counter)){
-                break;
-            }
-        }
-		if (cycle_counter % 100 == 0) {
-			double sent_thruput = ((cur_sent_counter - pre_sent_counter) / 100.0) * packet_size / (XSIZE * YSIZE * ZSIZE);
-			double thruput = ((cur_packet_counter - pre_packet_counter) / 100.0) * packet_size / (XSIZE * YSIZE * ZSIZE);
-			int tmp = network_UUT.network_max_busy_VC_num();
-			if (tmp > max_VCs)
-				max_VCs = tmp;
-			if (thruput > max_thruput)
-				max_thruput = thruput;
-			if (sent_thruput > max_sent_thruput)
-				max_sent_thruput = sent_thruput;
-			printf("%dth cycle: max_VCs is %d, thruput is %f\n", cycle_counter, tmp, thruput);
-			pre_packet_counter = cur_packet_counter;
-			pre_sent_counter = cur_sent_counter;
-		}
-        
-    }
-    print_stats(cycle_counter);
-	printf("overall max_VCs is %d,offered thruput is %f flits/node/cycle, max sent thruput is %f flits/node/cycle, max thruput is %f flits/node/cycle\n", max_VCs, (double)(packet_size * 6) / (packet_size + injection_gap), max_sent_thruput, max_thruput);
-    network_UUT.network_free();
+	}
+	
+	
+	
+
+	return 0;
 }
