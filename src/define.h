@@ -6,9 +6,9 @@
 #define IN_Q_SIZE 512
 #define VC_SIZE 16 // has to bigger than PACKET_SIZE
 #define VC_NUM 9
-#define XSIZE 8
-#define YSIZE 8
-#define ZSIZE 8
+#define XSIZE 4
+#define YSIZE 4
+#define ZSIZE 4
 #define XW 3
 #define YW 3
 #define ZW 3
@@ -21,7 +21,7 @@
 #define DIR_YNEG 5
 #define DIR_ZNEG 6
 #define DIR_EJECT 7
-#define LINKDELAY 2
+#define LINKDELAY 90
 /* packet format
 * head flit
 |FLIT type (3 bits)| VC class (1 bit) | dst z (3 bits) | dst y (3 bits) | dst x (3 bits) | priority field (4 bits) | src z (3 bits)| src y (3 bits)| src x (3 bits)| packet id (16 bits)| payload (66 bits)|

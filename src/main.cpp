@@ -413,8 +413,9 @@ int gen_pattern_cube_nearest_neighbor(int pattern_size){ //each node multicast t
 								
 
 								cur_inject_dir = comp_inject_dir(x, y, z, real_dst_x, real_dst_y, real_dst_z);
-								port_used[cur_inject_dir - 1] = true;
+								
 								if (cur_inject_dir != DIR_EJECT){
+									port_used[cur_inject_dir - 1] = true;
 									pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].inject_dir = cur_inject_dir;
 									pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].src_x = x;
 									pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].src_y = y;
@@ -638,18 +639,30 @@ int gen_pattern_all_to_all(int pattern_size){ //each node multicast to 26 neares
 					}
 				}
 
-				for (int dst_z = - ZSIZE / 2; dst_z <= ceil(double(ZSIZE / 2)) - 1; ++dst_z){
-					for (int dst_y = -YSIZE / 2; dst_y <= ceil(double(YSIZE / 2)) - 1; ++dst_y){
-						for (int dst_x = -XSIZE / 2; dst_x <= ceil(double(XSIZE / 2)) - 1; ++dst_x){
+				for (int dst_z = - ZSIZE / 2; dst_z <= ceil(double(ZSIZE / 2.0)) - 1; ++dst_z){
+					for (int dst_y = -YSIZE / 2; dst_y <= ceil(double(YSIZE / 2.0)) - 1; ++dst_y){
+						for (int dst_x = -XSIZE / 2; dst_x <= ceil(double(XSIZE / 2.0)) - 1; ++dst_x){
 							for (int j = 0; j < pattern_size; ++j){
 								int real_dst_x = (x + dst_x < 0) ? (x + dst_x + XSIZE) : ((x + dst_x >= XSIZE) ? (x + dst_x - XSIZE) : (x + dst_x));
 								int real_dst_y = (y + dst_y < 0) ? (y + dst_y + YSIZE) : ((y + dst_y >= YSIZE) ? (y + dst_y - YSIZE) : (y + dst_y));
 								int real_dst_z = (z + dst_z < 0) ? (z + dst_z + ZSIZE) : ((z + dst_z >= ZSIZE) ? (z + dst_z - ZSIZE) : (z + dst_z));
-
+								if (real_dst_x < 0 || real_dst_x >= XSIZE){
+									printf("error, dst error\n");
+									exit(-1);
+								}
+								if (real_dst_y < 0 || real_dst_y >= YSIZE){
+									printf("error, dst error\n");
+									exit(-1);
+								}
+								if (real_dst_z < 0 || real_dst_z >= ZSIZE){
+									printf("error, dst error\n");
+									exit(-1);
+								}
 
 								cur_inject_dir = comp_inject_dir(x, y, z, real_dst_x, real_dst_y, real_dst_z);
-								port_used[cur_inject_dir - 1] = true;
+								
 								if (cur_inject_dir != DIR_EJECT){
+									port_used[cur_inject_dir - 1] = true;
 									pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].inject_dir = cur_inject_dir;
 									pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].src_x = x;
 									pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].src_y = y;
@@ -683,6 +696,21 @@ int gen_pattern_all_to_all(int pattern_size){ //each node multicast to 26 neares
 
 }
 
+void clear_pattern(){
+	for (int z = 0; z < ZSIZE; ++z){
+		for (int y = 0; y < YSIZE; ++y){
+			for (int x = 0; x < XSIZE; ++x){
+				for (int i = 0; i < PORT_NUM; ++i){
+					for (int j = 0; j < global_injection_packet_size[i][z][y][x]; ++j){
+						pattern[i][z][y][x][j].sent = false;
+						pattern[i][z][y][x][j].rcvd = false;
+					}
+				}
+			}
+		}
+	}
+}
+
 
 bool count_sent_and_rcvd(int *send_num, int* packet_num){
     int cur_sent_num = 0;
@@ -703,7 +731,7 @@ bool count_sent_and_rcvd(int *send_num, int* packet_num){
     }
 	*send_num = cur_sent_num;
 	*packet_num = cur_rcvd_num;
-    printf("total %d pckts, sent %d pckts, rcvd %d pckts\n", total_packet_sent, cur_sent_num, cur_rcvd_num);
+//    printf("total %d pckts, sent %d pckts, rcvd %d pckts\n", total_packet_sent, cur_sent_num, cur_rcvd_num);
     return cur_rcvd_num == total_packet_sent;
 }
 
@@ -727,7 +755,7 @@ bool print_unrcvd() {
 			}
 		}
 	}
-	printf("total %d pckts, sent %d pckts, rcvd %d pckts\n", total_packet_sent, cur_sent_num, cur_rcvd_num);
+//	printf("total %d pckts, sent %d pckts, rcvd %d pckts\n", total_packet_sent, cur_sent_num, cur_rcvd_num);
 	return cur_rcvd_num == total_packet_sent;
 }
 
@@ -749,7 +777,7 @@ int count_packet(){
 	return packet_counter;
 }
 
-void print_stats(int total_latency, float* Avg_latency, int* Worst_case_latency, std::string* Worst_case_packet_info){
+void print_stats(int* total_packet, int total_latency, float* Avg_latency, int* Worst_case_latency, std::string* Worst_case_packet_info){
     int packet_counter = 0;
     float avg_latency = 0;
     int worst_case_latency = 0;
@@ -777,6 +805,7 @@ void print_stats(int total_latency, float* Avg_latency, int* Worst_case_latency,
 	sprintf(worst_case_packet_info, "worst packet from (%d, %d, %d) to (%d, %d, %d), packet id is %d\n", worst_case_packet.src_x, worst_case_packet.src_y, worst_case_packet.src_z, worst_case_packet.dst_x, worst_case_packet.dst_y, worst_case_packet.dst_z, worst_case_packet.id);
 	
 	
+	*total_packet = packet_counter;
 	*Avg_latency = avg_latency;
 	*Worst_case_latency = worst_case_latency;
 	*Worst_case_packet_info = std::string(worst_case_packet_info);
@@ -807,7 +836,22 @@ int main(int argc, char* argv[]){
 	int injection_gap = atoi(argv[8]);
 
 	
-	std::string common_path = "/home/jysheng/Documents/dynamic_router_sim/";
+	//std::string common_path = "/home/jysheng/Documents/dynamic_router_sim/";
+	std::string common_path = "/mnt/nokrb/jysheng/results/dynamic_router_sim/";
+
+	char cstr_xsize[5];
+	char cstr_ysize[5];
+	char cstr_zsize[5];
+
+	sprintf(cstr_xsize, "%d", XSIZE);
+	sprintf(cstr_ysize, "%d", YSIZE);
+	sprintf(cstr_zsize, "%d", ZSIZE);
+
+
+	std::string size_path = std::string(cstr_xsize) + "x" + std::string(cstr_ysize) + "x" + std::string(cstr_zsize) + "/";
+
+
+
 	std::string pattern_path[7];
 	pattern_path[0] = "NN";
 	pattern_path[1] = "3H_NN";
@@ -819,12 +863,16 @@ int main(int argc, char* argv[]){
 
 	std::string selected_pattern_path = pattern_path[pattern_id];
 
-	std::string filename = selected_pattern_path + "_" + argv[2] + "_" + argv[4] + "_" + argv[6] + ".txt";
+	std::string filename = selected_pattern_path + "_" + argv[4] + "_" + argv[6] + "_" + argv[8] + ".csv";
 
-	std::string output_path = common_path + selected_pattern_path + "/" + filename;
-	
+	//std::string output_path = common_path + size_path + selected_pattern_path + "/" + filename;
+	std::string output_path = "all_to_all_8_8_8.csv";
 	std::ofstream fout;
-	fout.open(output_path);
+	fout.open(output_path.c_str());
+	if (fout.fail()){
+		printf("open %s failed, exiting\n", output_path.c_str());
+		exit(-1);
+	}
 
 	
 	int port_used_num = 0;
@@ -850,13 +898,60 @@ int main(int argc, char* argv[]){
 		port_used_num = gen_pattern_all_to_all(pattern_size);
 	}
 
+	int global_best_max_VCs = 9;
+	int global_worst_max_VCs = 0;
+	float global_avg_max_VCs = 0;
+
+
+	int global_best_total_latency = 1000000;
+	int global_worst_total_latency = 0;
+	float global_avg_total_latency = 0;
+
+	float global_best_avg_latency = 100000;
+	float global_worst_avg_latency = 0;
+	float global_avg_avg_latency = 0;
+
+	int global_best_worst_case_latency = 100000;
+	int global_worst_worst_case_latency = 0;
+	float global_avg_worst_case_latency = 0;
+
+	double global_best_max_thruput = 0;
+	double global_worst_max_thruput = 100000;
+	double global_avg_max_thruput = 0;
+
+	double global_best_max_sent_thruput = 0;
+	double global_worst_max_sent_thruput = 100000;
+	double global_avg_max_sent_thruput = 0;
+
+	double global_best_avg_rcvd_thruput = 0;
+	double global_worst_avg_rcvd_thruput = 100000;
+	double global_avg_avg_rcvd_thruput = 0;
+
+	double global_best_avg_sent_thruput = 0;
+	double global_worst_avg_sent_thruput = 100000;
+	double global_avg_avg_sent_thruput = 0;
+
+
+	double max_thruput = 0;  //max receiving thruput during a certain amount of time
+	double max_sent_thruput = 0;
+	double avg_sent_thruput = 0;
+	double avg_rcvd_thruput = 0;
+
+	fout << "pattern name, pattern_size, packet_size" << std::endl;
+	fout << selected_pattern_path << ", " << pattern_size << ", " << packet_size << std::endl;
+
+	fout << "routing_mode, " << "SA_mode, " << "total packet num, " << "total latency, " << "avg latency, " << "worst case latency, " << "avg rcv thruput, " \
+		<< "avg sent thruput, " << "max rcv thruput, " << " max sent thruput, " << " offered send thruput, " << " max used VC NUM" << "worst case packet info" << std::endl;
 
 	srand((unsigned)time(NULL));
-    int cycle_counter = 0;
+
+	int case_num = 0;
+    
 	
 	for (int routing_mode_i = 0; routing_mode_i < ROUTING_MODE_NUM; routing_mode_i++){
 		for (int SA_mode_j = 0; SA_mode_j < SA_MODE_NUM; SA_mode_j++){
 			//result list:
+			int cycle_counter = 0;
 			int max_VCs = 0;
 			int total_packet_num = count_packet();
 
@@ -865,6 +960,11 @@ int main(int argc, char* argv[]){
 			int worst_case_latency;
 			std::string worst_case_packet_info;
 
+			double max_thruput = 0;  //max receiving thruput during a certain amount of time
+			double max_sent_thruput = 0;
+			double avg_sent_thruput = 0;
+			double avg_rcvd_thruput = 0;
+
 
 
 			int check_period = 2 * injection_gap > 100 ? 2 * injection_gap : 100;
@@ -872,10 +972,7 @@ int main(int argc, char* argv[]){
 			
 			network network_UUT;
 			
-			double max_thruput = 0;
-			double max_sent_thruput = 0;
-			double avg_sent_thruput = 0;
-			double avg_rcvd_thruput = 0;
+
 			int all_sent_stamp = 0;
 			bool all_sent = false;
 			bool start_rcvd = false;
@@ -885,7 +982,7 @@ int main(int argc, char* argv[]){
 			int pre_packet_counter = 0;
 			int pre_rcvd_counter = 0;
 			int cur_packet_counter = 0;
-			network_UUT.network_init(XSIZE, YSIZE, ZSIZE, 0, ROUTING_RLB_XYZ, SA_OLDEST_FIRST, injection_gap, packet_size);
+			network_UUT.network_init(XSIZE, YSIZE, ZSIZE, 0, routing_mode_i, SA_mode_j, injection_gap, packet_size);
 			while (1){
 				if (network_UUT.consume() == -1){
 					break;
@@ -895,10 +992,11 @@ int main(int argc, char* argv[]){
 				}
 
 				if (cycle_counter % 1 == 0){
-					printf("%dth cycle:\n", cycle_counter);
-					if (count_sent_and_rcvd(&cur_sent_counter, &cur_packet_counter)){
-						break;
-					}
+//					printf("%dth cycle:\n", cycle_counter);
+
+				}
+				if (count_sent_and_rcvd(&cur_sent_counter, &cur_packet_counter)){
+					break;
 				}
 				if (cur_sent_counter == total_packet_num){
 					all_sent_stamp = cycle_counter;
@@ -920,7 +1018,7 @@ int main(int argc, char* argv[]){
 						max_thruput = thruput;
 					if (sent_thruput > max_sent_thruput)
 						max_sent_thruput = sent_thruput;
-					printf("%dth cycle: max_VCs is %d, thruput is %f\n", cycle_counter, tmp, thruput);
+//					printf("%dth cycle: max_VCs is %d, thruput is %f\n", cycle_counter, tmp, thruput);
 					pre_packet_counter = cur_packet_counter;
 					pre_sent_counter = cur_sent_counter;
 				}
@@ -936,14 +1034,101 @@ int main(int argc, char* argv[]){
 			}
 			avg_sent_thruput = (double)cur_sent_counter * (double)packet_size / all_sent_stamp / (XSIZE * YSIZE * ZSIZE);
 			avg_rcvd_thruput = (double)cur_packet_counter * (double)packet_size / (cycle_counter - start_rcvd_stamp) / (XSIZE * YSIZE * ZSIZE);
-			print_stats(cycle_counter, &avg_latency, &worst_case_latency, &worst_case_packet_info);
+			print_stats(&total_packet_num, cycle_counter, &avg_latency, &worst_case_latency, &worst_case_packet_info);
+			printf("current run: %s\n", filename.c_str());
 			printf("overall max_VCs is %d,port_used %d, offered thruput is %f flits/node/cycle, max sent thruput is %f flits/node/cycle, max thruput is %f flits/node/cycle\n", max_VCs, port_used_num, (double)(packet_size * port_used_num) / (packet_size + injection_gap), max_sent_thruput, max_thruput);
 			printf("avg sent thruput is %f flits/node/cycle, avg rcvd thruput is %f flits/node/cycle\n", avg_sent_thruput, avg_rcvd_thruput);
+
+			total_latency = cycle_counter;
+
+
+
+			fout << routing_mode_i << ", " << SA_mode_j << ", " << total_packet_num << ", " << total_latency << ", " << avg_latency << ", " << worst_case_latency << ", " \
+				<< avg_rcvd_thruput << ", " << avg_sent_thruput << ", " << max_sent_thruput << ", " << max_thruput << ", " \
+				<< (double)(packet_size * port_used_num) / (packet_size + injection_gap) << ", " << max_VCs << ", " << worst_case_packet_info << std::endl;
+
+			if (total_latency < global_best_total_latency){
+				global_best_total_latency = total_latency;
+			}
+			if (total_latency > global_worst_total_latency){
+				global_worst_total_latency = total_latency;
+			}
+			global_avg_total_latency = (global_avg_total_latency * case_num + total_latency) / (float)(case_num + 1);
+
+			if (avg_latency < global_best_avg_latency){
+				global_best_avg_latency = avg_latency;
+			}
+			if (avg_latency > global_worst_avg_latency){
+				global_worst_avg_latency = avg_latency;
+			}
+			global_avg_avg_latency = (global_avg_avg_latency * case_num + avg_latency) / (float)(case_num + 1);
+
+			if (worst_case_latency < global_best_worst_case_latency){
+				global_best_worst_case_latency = worst_case_latency;
+			}
+			if (worst_case_latency > global_worst_worst_case_latency){
+				global_worst_worst_case_latency = worst_case_latency;
+			}
+			global_avg_worst_case_latency = (global_avg_worst_case_latency * case_num + worst_case_latency) / (float)(case_num + 1);
+
+			if (max_VCs < global_best_max_VCs){
+				global_best_max_VCs = max_VCs;
+			}
+			if (max_VCs > global_worst_max_VCs){
+				global_worst_max_VCs = max_VCs;
+			}
+			global_avg_max_VCs = (global_avg_max_VCs * case_num + max_VCs) / (float)(case_num + 1);
+
+			if (avg_rcvd_thruput > global_best_avg_rcvd_thruput){
+				global_best_avg_rcvd_thruput = avg_rcvd_thruput;
+			}
+			if (avg_rcvd_thruput < global_worst_avg_rcvd_thruput){
+				global_worst_avg_rcvd_thruput = avg_rcvd_thruput;
+			}
+			global_avg_avg_rcvd_thruput = (global_avg_avg_rcvd_thruput * case_num + avg_rcvd_thruput) / (float)(case_num + 1);
+
+			if (avg_sent_thruput > global_best_avg_sent_thruput){
+				global_best_avg_sent_thruput = avg_sent_thruput;
+			}
+			if (avg_sent_thruput < global_worst_avg_sent_thruput){
+				global_worst_avg_sent_thruput = avg_sent_thruput;
+			}
+			global_avg_avg_sent_thruput = (global_avg_avg_sent_thruput * case_num + avg_sent_thruput) / (float)(case_num + 1);
+
+			if (max_sent_thruput > global_best_max_sent_thruput){
+				global_best_max_sent_thruput = max_sent_thruput;
+			}
+			if (max_sent_thruput < global_worst_max_sent_thruput){
+				global_worst_max_sent_thruput = max_sent_thruput;
+			}
+			global_avg_max_sent_thruput = (global_avg_max_sent_thruput * case_num + max_sent_thruput) / (float)(case_num + 1);
+
+			if (max_thruput > global_best_max_thruput){
+				global_best_max_thruput = max_thruput;
+			}
+			if (max_thruput < global_worst_max_thruput){
+				global_worst_max_thruput = max_thruput;
+			}
+			global_avg_max_thruput = (global_avg_max_thruput * case_num + max_thruput) / (float)(case_num + 1);
+
+
+
 			network_UUT.network_free();
+			case_num++;
+			clear_pattern();
 		}
 	}
-	
-	
+	fout << "best" << ", " << "best" << ", " << " " << ", " << global_best_total_latency << ", " << global_best_avg_latency << ", " << global_best_worst_case_latency << ", " \
+		<< global_best_avg_rcvd_thruput << ", " << global_best_avg_sent_thruput << ", " << global_best_max_sent_thruput << ", " << global_best_max_thruput << ", " \
+		<< (double)(packet_size * port_used_num) / (packet_size + injection_gap) << ", " << global_best_max_VCs << ", " << " " << std::endl;
+	fout << "avg" << ", " << "avg" << ", " << " " << ", " << global_avg_total_latency << ", " << global_avg_avg_latency << ", " << global_avg_worst_case_latency << ", " \
+		<< global_avg_avg_rcvd_thruput << ", " << global_avg_avg_sent_thruput << ", " << global_avg_max_sent_thruput << ", " << global_avg_max_thruput << ", " \
+		<< (double)(packet_size * port_used_num) / (packet_size + injection_gap) << ", " << global_avg_max_VCs << ", " << " " << std::endl;
+	fout << "worst" << ", " << "worst" << ", " << " " << ", " << global_worst_total_latency << ", " << global_worst_avg_latency << ", " << global_worst_worst_case_latency << ", " \
+		<< global_worst_avg_rcvd_thruput << ", " << global_worst_avg_sent_thruput << ", " << global_worst_max_sent_thruput << ", " << global_worst_max_thruput << ", " \
+		<< (double)(packet_size * port_used_num) / (packet_size + injection_gap) << ", " << global_worst_max_VCs << ", " << " " << std::endl;
+
+	fout.close();
 	
 
 	return 0;
