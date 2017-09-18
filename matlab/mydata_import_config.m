@@ -1,4 +1,4 @@
-function [best, avg, worst] = mydata_import(filename, metric_id)
+function config_result = mydata_import_alg(filename, metric_id)
     fp = fopen(filename);
     if fp == -1
         fprintf('failed to open %s\n',filename);
@@ -17,6 +17,9 @@ function [best, avg, worst] = mydata_import(filename, metric_id)
                 best = nan;
                 avg = nan;
                 worst = nan;
+                for i = 1 : 1 : 15
+                    config_result(i) = nan;
+                end
                 return;
             end
             break;
@@ -28,6 +31,25 @@ function [best, avg, worst] = mydata_import(filename, metric_id)
         tline = fgets(fp);
         line_counter = line_counter + 1;
     end
+    
+    if line_counter ~= 16
+        for i = 1 : 1 : 15
+            config_result(i) = nan;
+        end
+                            
+        fclose(fp);
+        return
+    else
+        baseline = results_array(1);
+        for i = 1 : 1 : 15
+            config_result(i) = results_array(i)/results_array(1);
+        end
+    end
+    
+    %normalize
+            
+    fclose(fp);
+    return
     
     if metric_id == 4 %total latency
         best = 1000000;

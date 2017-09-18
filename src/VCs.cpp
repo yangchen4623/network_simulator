@@ -36,23 +36,27 @@ void VCs::consume(){
 	int i = 0;
     if(in->valid && (in->flit_type == HEAD_FLIT || in->flit_type == SINGLE_FLIT)){//allocate this flit to next available idle VC
         if(!(in->VC_class)){
-            for(i = 0; i < VC_NUM - 1; ++i){
+//            for(i = 0; i < VC_NUM - 1; ++i){
+			for (i = 0; i < ALLOW_VC_NUM - 1; ++i){
                 if(VC_state[i] == VC_IDLE){
                     grant = (1 << i);
                     break;
                 }
             }
-            if(i == VC_NUM - 1)
+//            if(i == VC_NUM - 1)
+			if (i == ALLOW_VC_NUM - 1)
                 grant = 0;
         }
         else{
-            for(i = 1; i < VC_NUM; ++i){
+//            for(i = 1; i < VC_NUM; ++i){
+			for (i = 1; i < ALLOW_VC_NUM; ++i){
                 if(VC_state[i] == VC_IDLE){
                     grant = (1 << i );
                     break;
                 }
             }
-            if(i == VC_NUM)
+//            if(i == VC_NUM)
+			if (i == ALLOW_VC_NUM)
                 grant = 0;
         }
     }

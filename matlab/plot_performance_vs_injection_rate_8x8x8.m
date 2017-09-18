@@ -1,5 +1,5 @@
 %%this script reads input from
-%%\\engnas.bu.edu\users\j\y\jysheng\Documents\dynamic_router_sim\4x4x4 and
+%%\\engnas.bu.edu\users\j\y\jysheng\Documents\dynamic_router_sim\8x8x8 and
 %%8x8x8
 %%The results are located in subdir with the pattern name
 %%The filename is [pattern name]_[pattern_size]_[packet_size]_[injection_gap]
@@ -13,12 +13,13 @@
 clear;
 pattern_list = {'NN', '3H_NN', 'CUBE_NN', 'bit_complement', 'transpose', 'tornado', 'all_to_all'};
 title_list = {'nearest neighbor ', '3-hop nearest neighbor ', 'cube nearest neighbor ', 'bit complement ', 'transpose ', 'tornado ', 'all to all '};
-metric_list = {'total latency', 'avg latency', 'worst case latency', 'avg rcv thruput', 'avg sent thruput', 'peak rcv thruput', 'peak sent thruput', 'max used VC NUM'};
+metric_list = {'total latency', 'avg latency', 'worst case latency', 'avg rcv thruput', 'avg sent thruput', 'max rcv thruput', 'max sent thruput', 'max used VC NUM'};
 unit_list = {'cycles','cycles','cycles','flits/node/cycle','flits/node/cycle','flits/node/cycle','flits/node/cycle',' '};
 pattern_size = [1 2 4 8 16];
 packet_size = [1 2 4 8 16];
-injection_gap0 = 0 : 1 : 9;
-injection_gap1 = [0 1 3 7 15];
+injection_gap0 = [0 1 3 7 15];
+injection_gap1 = 0:1:4;
+injection_gap2 = [0 3 7 15];
 base_injection_rate = [6, 4, 6, 1, 1, 1, 6];
 
 marker_list = {'x', 'o', 'V', '^', 'd', '>', '<'};
@@ -26,18 +27,18 @@ marker_list = {'x', 'o', 'V', '^', 'd', '>', '<'};
 figure_id = 1;
 
 common_path = 'Z:\Documents\dynamic_router_sim\';
-network_size_path = '4x4x4\';
+network_size_path = '8x8x8\';
 
 
 %%plot: x axis is offered injection thruput, y axis is metrics, different
 %%line denotes best, avg and worst case for different packet size or data amount
 %% plot NN result
-offered_injection_ratio = 6 * (1 ./ (1+injection_gap0));
+offered_injection_ratio = 6 * (1 ./ (1+injection_gap1));
 for i = 1:1:size(metric_list, 2)
     if i == 1 %if i == 1 is total latency, the different line means different amout of data been sent
         for j = 1:1:size(pattern_size, 2) %%use the data of packet size 4 as the data
-            for k = size(injection_gap0, 2):-1:1
-                filename = strcat(pattern_list{1}, '_', num2str(pattern_size(j)), '_4_', num2str(4*injection_gap0(k)), '.csv');
+            for k = size(injection_gap1, 2):-1:1
+                filename = strcat(pattern_list{1}, '_', num2str(pattern_size(j)), '_4_', num2str(pattern_size(j)*injection_gap1(k)), '.csv');
                 path = strcat(common_path, network_size_path, pattern_list{1}, '\', filename);
                 if i == size(metric_list, 2)
                     [best(1,i,j,k), avg(1,i,j,k), worst(1,i,j,k)] = mydata_import(path, i+4);
@@ -52,8 +53,8 @@ for i = 1:1:size(metric_list, 2)
     else
         %for other case, the different lines mean different packet size
         for j = 1:1:size(packet_size, 2)
-            for k = size(injection_gap0, 2):-1:1
-                filename = strcat(pattern_list{1}, '_16_', num2str(packet_size(j)), '_', num2str(packet_size(j)*injection_gap0(k)), '.csv');
+            for k = size(injection_gap1, 2):-1:1
+                filename = strcat(pattern_list{1}, '_16_', num2str(packet_size(j)), '_', num2str(16*injection_gap1(k)), '.csv');
                 path = strcat(common_path, network_size_path, pattern_list{1}, '\', filename);
                 if i == size(metric_list, 2)
                     [best(1,i,j,k), avg(1,i,j,k), worst(1,i,j,k)] = mydata_import(path, i+4);
@@ -136,7 +137,7 @@ for i = 1:1:size(metric_list, 2)
         %for other case, the different lines mean different packet size
         for j = 1:1:size(packet_size, 2)
             for k = size(injection_gap0, 2):-1:1
-                filename = strcat(pattern_list{2}, '_16_', num2str(packet_size(j)), '_', num2str(packet_size(j)*injection_gap0(k)), '.csv');
+                filename = strcat(pattern_list{2}, '_8_', num2str(packet_size(j)), '_', num2str(packet_size(j)*injection_gap0(k)), '.csv');
                 path = strcat(common_path, network_size_path, pattern_list{2}, '\', filename);
                 if i == size(metric_list, 2)
                     [best(2,i,j,k), avg(2,i,j,k), worst(2,i,j,k)] = mydata_import(path, i+4);
@@ -220,7 +221,7 @@ for i = 1:1:size(metric_list, 2)
         %for other case, the different lines mean different packet size
         for j = 1:1:size(packet_size, 2)
             for k = size(injection_gap0, 2):-1:1
-                filename = strcat(pattern_list{3}, '_8_', num2str(packet_size(j)), '_', num2str(packet_size(j)*injection_gap0(k)), '.csv');
+                filename = strcat(pattern_list{3}, '_4_', num2str(packet_size(j)), '_', num2str(packet_size(j)*injection_gap0(k)), '.csv');
                 path = strcat(common_path, network_size_path, pattern_list{3}, '\', filename);
                 if i == size(metric_list, 2)
                     [best(3,i,j,k), avg(3,i,j,k), worst(3,i,j,k)] = mydata_import(path, i+4);
@@ -283,12 +284,12 @@ fprintf('%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\n',speedup_CUBE_NN(1),sp
 fprintf('CUBE done\n');
 
 %% plot bit_complement result
-offered_injection_ratio = 1 * (1 ./ (1+injection_gap0));
+offered_injection_ratio = 1 * (1 ./ (1+injection_gap1));
 for i = 1:1:size(metric_list, 2)
     if i == 1 %if i == 1 is total latency, the different line means different amout of data been sent
         for j = 1:1:size(pattern_size, 2) %%use the data of packet size 4 as the data
-            for k = size(injection_gap0, 2):-1:1
-                filename = strcat(pattern_list{4}, '_', num2str(pattern_size(j)), '_4_', num2str(4*injection_gap0(k)), '.csv');
+            for k = size(injection_gap1, 2):-1:1
+                filename = strcat(pattern_list{4}, '_', num2str(pattern_size(j)), '_4_', num2str(4*injection_gap1(k)), '.csv');
                 path = strcat(common_path, network_size_path, pattern_list{4}, '\', filename);
                 if i == size(metric_list, 2)
                     [best(4,i,j,k), avg(4,i,j,k), worst(4,i,j,k)] = mydata_import(path, i+4);
@@ -303,8 +304,8 @@ for i = 1:1:size(metric_list, 2)
     else
         %for other case, the different lines mean different packet size
         for j = 1:1:size(packet_size, 2)
-            for k = size(injection_gap0, 2):-1:1
-                filename = strcat(pattern_list{4}, '_16_', num2str(packet_size(j)), '_', num2str(packet_size(j)*injection_gap0(k)), '.csv');
+            for k = size(injection_gap1, 2):-1:1
+                filename = strcat(pattern_list{4}, '_8_', num2str(packet_size(j)), '_', num2str(packet_size(j)*injection_gap1(k)), '.csv');
                 path = strcat(common_path, network_size_path, pattern_list{4}, '\', filename);
                 if i == size(metric_list, 2)
                     [best(4,i,j,k), avg(4,i,j,k), worst(4,i,j,k)] = mydata_import(path, i+4);
@@ -558,9 +559,9 @@ for i = 1:1:size(metric_list, 2)
         end
     else
         %for other case, the different lines mean different packet size
-        for j = 1:1:size(packet_size, 2)-1
+        for j = 1:1:size(packet_size, 2)
             for k = size(injection_gap0, 2):-1:1
-                filename = strcat(pattern_list{7}, '_4_', num2str(packet_size(j)), '_', num2str(packet_size(j)*injection_gap0(k)), '.csv');
+                filename = strcat(pattern_list{7}, '_8_', num2str(packet_size(j)), '_', num2str(packet_size(j)*injection_gap0(k)), '.csv');
                 path = strcat(common_path, network_size_path, pattern_list{7}, '\', filename);
                 if i == size(metric_list, 2)
                     [best(7,i,j,k), avg(7,i,j,k), worst(7,i,j,k)] = mydata_import(path, i+4);
@@ -598,7 +599,7 @@ for i = 1:1:size(metric_list, 2)
     end
     
     legend(legend_list);
-    title(strcat('All to all-- ', metric_list{i}));
+    title(strcat('All to all ', metric_list{i}));
     print(cur_fig, outputplotepsfilename, '-depsc2');
     print(cur_fig, outputplotpngfilename, '-dpng');
     figure_id = figure_id + 1;
@@ -641,18 +642,18 @@ for i = 1 : 1 : size(metric_list, 2) %ignore NN (NN is not interesting in our ro
     cur_fig = figure(figure_id);
     %tight_subplot(2,3,[.01 .03],[.1 .01],[.01 .01]) 
     set(gcf, 'PaperPositionMode','auto');
-    set(cur_fig, 'Position', [0 0 1500 1000])
+    set(cur_fig, 'Position', [0 0 2000 600])
     if i == 1
         legend_list = {'1kb best', '1kb avg', '2kb best', '2kb avg', '4kb best', '4kb avg', '8kb best', '8kb avg', '16kb best', '16kb avg'};
     else
         legend_list = {'0.25kb best', '0.25kb avg', '0.5kb best', '0.5kb avg', '1kb best', '1kb avg', '2kb best', '2kb avg' ,'4kb best', '4kb avg'};
     end
-    for j = 1 : 1 : 6
+    for j = 1 : 1 : 4
         if j == 6
             legend_list = legend_list(1:8);
         end
-        subplot(2, 3 ,j);
-        offered_injection_ratio = base_injection_rate(j + 1) * (1 ./ (1+injection_gap0));
+        subplot(1, 4 ,j);
+        offered_injection_ratio = base_injection_rate(j) * (1 ./ (1+injection_gap0));
         if i == 1
             plot_set_num = size(pattern_size, 2) - (j == 6);
         else
@@ -661,16 +662,15 @@ for i = 1 : 1 : size(metric_list, 2) %ignore NN (NN is not interesting in our ro
         for k = 1:1:plot_set_num 
             plot(fliplr(offered_injection_ratio'), squeeze(best(j+1,i,k,:)), strcat('b-',marker_list{k}), 'LineWidth', 2, 'MarkerSize', 12);
             if k == 1
-                set(gca,'fontsize',14);
                 xlabel('offered injection rate (flits/node/cycle)');               
-                ylabel(strcat(metric_list{i},'---',unit_list{i}));
+                ylabel(strcat(metric_list{i},'(',unit_list{i},')'));
                 grid on;
                 hold on;
             end
             plot(fliplr(offered_injection_ratio'), squeeze(avg(j+1,i,k,:)), strcat('r-',marker_list{k}), 'LineWidth', 2, 'MarkerSize', 12);
         end
         legend(legend_list,'Location','best');
-        title(strcat(title_list{j+1},'---', metric_list{i}));
+        title(strcat(title_list{j+1},'--- ', metric_list{i}));
     end
     print(cur_fig, outputplotepsfilename, '-depsc2');
     print(cur_fig, outputplotpngfilename, '-dpng');

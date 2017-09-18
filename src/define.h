@@ -6,6 +6,8 @@
 #define IN_Q_SIZE 512
 #define VC_SIZE 16 // has to bigger than PACKET_SIZE
 #define VC_NUM 9
+
+#define ALLOW_VC_NUM 7
 #define XSIZE 4
 #define YSIZE 4
 #define ZSIZE 4
@@ -14,6 +16,15 @@
 #define ZW 3
 #define DSTW 9
 #define DIR_INJECT 0
+/*
+port id 0: xpos
+port id 1: ypos
+port id 2: zpos
+port id 3: xneg
+port id 4: yneg
+port id 5: zneg
+
+*/
 #define DIR_XPOS 1
 #define DIR_YPOS 2
 #define DIR_ZPOS 3

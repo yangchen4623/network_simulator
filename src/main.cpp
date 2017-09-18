@@ -220,6 +220,182 @@ char comp_inject_dir(int src_x, int src_y, int src_z, int dst_x, int dst_y, int 
 	return ret;
 }
 
+char comp_inject_dir_tornado(int src_x, int src_y, int src_z, int dst_x, int dst_y, int dst_z){
+	//compute which direction to inject, the injection direction must not violate the ristricted turning rules. 
+	//the six turning is forbidden
+	//zneg->xpos
+	//zneg->xneg
+	//zneg->ypos
+	//zneg->yneg
+	//yneg->xpos
+	//yneg->xneg
+	char ret;
+	int x_dir;
+	int y_dir;
+	int z_dir;
+	if (src_z == dst_z && src_x != dst_x){
+		int pos_x_dist = 0;
+		int neg_x_dist = 0;
+		if (dst_x > src_x){
+			pos_x_dist = dst_x - src_x;
+			neg_x_dist = XSIZE - pos_x_dist;
+		}
+		else{
+			neg_x_dist = src_x - dst_x;
+			pos_x_dist = XSIZE - neg_x_dist;
+		}
+		
+		if (pos_x_dist >= neg_x_dist)
+			return DIR_XNEG;
+		else
+			return DIR_XPOS;
+		
+	}
+
+
+	if (src_x == dst_x && src_y == dst_y && src_z == dst_z){
+		ret = DIR_EJECT;
+	}
+	else if (src_x == dst_x && src_y == dst_y){
+		z_dir = pos_or_neg(src_z, dst_z, 2);
+		if (z_dir == -1)
+			ret = DIR_ZNEG;
+		else if (z_dir == 1)
+			ret = DIR_ZPOS;
+		else{
+			int i = 0;// rand() % 2;
+			if (i == 0)
+				ret = DIR_ZPOS;
+			else
+				ret = DIR_ZNEG;
+		}
+
+	}
+	else if (src_x == dst_x){
+		y_dir = pos_or_neg(src_y, dst_y, 1);
+		if (y_dir == -1)
+			ret = DIR_YNEG;
+		else if (y_dir == 1)
+			ret = DIR_YPOS;
+		else{
+			int i = 1;// rand() % 2;
+			if (i == 0)
+				ret = DIR_YPOS;
+			else
+				ret = DIR_YNEG;
+		}
+	}
+	else{//in this case, all the DIR_XPOS, DIR_YPOS, DIR_ZPOS, DIR_XNEG are allowed to use, DIR_YNEG and DIR_ZNEG are not allowed
+		x_dir = pos_or_neg(src_x, dst_x, 0);
+		y_dir = pos_or_neg(src_y, dst_y, 1);
+		z_dir = pos_or_neg(src_z, dst_z, 2);
+		if (z_dir == -1 || z_dir == 2){ //zpos is banned also
+			if (y_dir == -1 || y_dir == 2){//ypos is banned also
+				if (x_dir == -1)
+					ret = DIR_XNEG;
+				else if (x_dir == 1)
+					ret = DIR_XPOS;
+				else{
+					int i = 0;// rand() % 2;
+					if (i == 0)
+						ret = DIR_XPOS;
+					else
+						ret = DIR_XNEG;
+				}
+			}
+			else if (y_dir == 1 || y_dir == 0){//ypos is allowed
+				if (x_dir == -1){
+					int i = 1;// rand() % 2;
+					if (i == 0)
+						ret = DIR_YPOS;
+					else
+						ret = DIR_XNEG;
+				}
+				else if (x_dir == 1){
+					int i = 0;// rand() % 2;
+					if (i == 0)
+						ret = DIR_YPOS;
+					else
+						ret = DIR_XPOS;
+				}
+				else{
+					int i = 1;// rand() % 3;
+					if (i == 0)
+						ret = DIR_YPOS;
+					else if (i == 1)
+						ret = DIR_XPOS;
+					else
+						ret = DIR_XNEG;
+				}
+			}
+
+		}
+
+		else if (z_dir == 1 || z_dir == 0){//zpos is allowed
+			if (y_dir == -1 || y_dir == 2){//ypos is banned also
+				if (x_dir == -1){
+					int i = 0;// rand() % 2;
+					if (i == 0)
+						ret = DIR_ZPOS;
+					else
+						ret = DIR_XNEG;
+				}
+				else if (x_dir == 1){
+					int i = 1;// rand() % 2;
+					if (i == 0)
+						ret = DIR_ZPOS;
+					else
+						ret = DIR_XPOS;
+				}
+				else{
+					int i = 0;// rand() % 3;
+					if (i == 0)
+						ret = DIR_ZPOS;
+					else if (i == 1)
+						ret = DIR_XPOS;
+					else
+						ret = DIR_XNEG;
+				}
+			}
+			else if (y_dir == 1 || y_dir == 0){//ypos is allowed
+				if (x_dir == -1){
+					int i = 1;// rand() % 3;
+					if (i == 0)
+						ret = DIR_ZPOS;
+					else if (i == 1)
+						ret = DIR_YPOS;
+					else
+						ret = DIR_XNEG;
+				}
+				else if (x_dir == 1){
+					int i = 2;// rand() % 3;
+					if (i == 0)
+						ret = DIR_ZPOS;
+					else if (i == 1)
+						ret = DIR_YPOS;
+					else
+						ret = DIR_XPOS;
+				}
+				else{
+					int i = 3;// rand() % 4;
+					if (i == 0)
+						ret = DIR_YPOS;
+					else if (i == 1)
+						ret = DIR_XPOS;
+					else if (i == 2)
+						ret = DIR_XNEG;
+					else
+						ret = DIR_ZPOS;
+				}
+
+			}
+		}
+
+	}
+
+	return ret;
+}
+
 
 int total_packet_sent = 0;
 int gen_pattern_nearest_neighbor(int pattern_size){
@@ -584,9 +760,9 @@ int gen_pattern_tornado(int pattern_size) {
 					}
 				}
 				int dst_z = z;
-				int dst_y = y;
-				int dst_x = (x + XSIZE / 2 >= XSIZE) ? (x + XSIZE / 2 - XSIZE) : (x + XSIZE / 2);
-				cur_inject_dir = comp_inject_dir(x, y, z, dst_x, dst_y, dst_z);
+				int dst_y = (y + YSIZE / 2 - 1 >= YSIZE) ? y + YSIZE / 2 - 1 - YSIZE : y + YSIZE / 2 - 1;
+				int dst_x = (x + 1 >= XSIZE) ? (x + 1 - XSIZE) : (x);
+				cur_inject_dir = comp_inject_dir_tornado(x, y, z, dst_x, dst_y, dst_z);
 				for (int j = 0; j < pattern_size; ++j){
 					if (cur_inject_dir != DIR_EJECT){
 						pattern[cur_inject_dir - 1][z][y][x][global_injection_packet_size[cur_inject_dir - 1][z][y][x]].inject_dir = cur_inject_dir;
@@ -731,7 +907,7 @@ bool count_sent_and_rcvd(int *send_num, int* packet_num){
     }
 	*send_num = cur_sent_num;
 	*packet_num = cur_rcvd_num;
-//    printf("total %d pckts, sent %d pckts, rcvd %d pckts\n", total_packet_sent, cur_sent_num, cur_rcvd_num);
+    printf("total %d pckts, sent %d pckts, rcvd %d pckts\n", total_packet_sent, cur_sent_num, cur_rcvd_num);
     return cur_rcvd_num == total_packet_sent;
 }
 
@@ -755,7 +931,7 @@ bool print_unrcvd() {
 			}
 		}
 	}
-//	printf("total %d pckts, sent %d pckts, rcvd %d pckts\n", total_packet_sent, cur_sent_num, cur_rcvd_num);
+	printf("total %d pckts, sent %d pckts, rcvd %d pckts\n", total_packet_sent, cur_sent_num, cur_rcvd_num);
 	return cur_rcvd_num == total_packet_sent;
 }
 
@@ -866,7 +1042,7 @@ int main(int argc, char* argv[]){
 	std::string filename = selected_pattern_path + "_" + argv[4] + "_" + argv[6] + "_" + argv[8] + ".csv";
 
 	//std::string output_path = common_path + size_path + selected_pattern_path + "/" + filename;
-	std::string output_path = "all_to_all_8_8_8.csv";
+	std::string output_path = filename;
 	std::ofstream fout;
 	fout.open(output_path.c_str());
 	if (fout.fail()){
@@ -1018,7 +1194,7 @@ int main(int argc, char* argv[]){
 						max_thruput = thruput;
 					if (sent_thruput > max_sent_thruput)
 						max_sent_thruput = sent_thruput;
-//					printf("%dth cycle: max_VCs is %d, thruput is %f\n", cycle_counter, tmp, thruput);
+					printf("%dth cycle: max_VCs is %d, thruput is %f\n", cycle_counter, tmp, thruput);
 					pre_packet_counter = cur_packet_counter;
 					pre_sent_counter = cur_sent_counter;
 				}
